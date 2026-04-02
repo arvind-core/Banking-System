@@ -1,4 +1,4 @@
-package com.BankingSystem.entity;
+package com.BankingSystem.entity.users;
 
 public enum Role {
     CUSTOMER,
