@@ -1,4 +1,4 @@
-package com.BankingSystem.entity.Account;
+package com.BankingSystem.entity.account;
 
 import com.BankingSystem.entity.users.User;
 import jakarta.persistence.*;
