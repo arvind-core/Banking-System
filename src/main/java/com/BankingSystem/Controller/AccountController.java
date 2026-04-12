@@ -15,6 +15,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountController {
 
+    //This is controller for Accounts, it will manage all the requests related to accounts sections.
+    // Controller are nothing but a way to communicate to online requests/responses through internet or sometimes on local devices
+
     private final AccountService accountService;
 
     @PostMapping
