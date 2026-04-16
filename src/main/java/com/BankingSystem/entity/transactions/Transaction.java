@@ -1,6 +1,6 @@
-package com.BankingSystem.entity.account;
+package com.BankingSystem.entity.transactions;
 
-import com.BankingSystem.entity.users.User;
+import com.BankingSystem.entity.account.Account;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,51 +10,49 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "transactions")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Account {
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String accountNumber;
+    private String transactionReference;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AccountType accountType;
+    private TransactionType transactionType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionStatus status;
 
     @Column(nullable = false)
-    private BigDecimal balance;
+    private BigDecimal amount;
 
     @Column(nullable = false)
-    private String branchName;
-
-    @Column(nullable = false)
-    private boolean isPrimary = false;
+    private BigDecimal balanceAfterTransaction;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
+
+    @Column
+    private String targetAccountNumber;
+
+    @Column
+    private String description;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 }
