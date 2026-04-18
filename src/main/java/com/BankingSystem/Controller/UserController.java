@@ -2,7 +2,7 @@ package com.BankingSystem.Controller;
 
 import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;
-import com.BankingSystem.service.UserService;
+import com.BankingSystem.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

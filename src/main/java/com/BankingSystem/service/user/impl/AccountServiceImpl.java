@@ -1,4 +1,4 @@
-package com.BankingSystem.service.impl;
+package com.BankingSystem.service.user.impl;
 
 import com.BankingSystem.dto.request.CreateAccountRequest;
 import com.BankingSystem.dto.response.AccountResponse;
@@ -6,7 +6,7 @@ import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.UserRepository;
-import com.BankingSystem.service.AccountService;
+import com.BankingSystem.service.user.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;

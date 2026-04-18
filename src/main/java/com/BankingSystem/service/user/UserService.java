@@ -1,4 +1,4 @@
-package com.BankingSystem.service;
+package com.BankingSystem.service.user;
 
 import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;

@@ -1,11 +1,11 @@
-package com.BankingSystem.service.impl;
+package com.BankingSystem.service.user.impl;
 
 import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;
 import com.BankingSystem.entity.users.Role;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.repo.UserRepository;
-import com.BankingSystem.service.UserService;
+import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
