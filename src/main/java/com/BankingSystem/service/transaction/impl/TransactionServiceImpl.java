@@ -3,18 +3,28 @@ package com.BankingSystem.service.transaction.impl;
 import com.BankingSystem.dto.request.transaction.DepositRequest;
 import com.BankingSystem.dto.request.transaction.TransferRequest;
 import com.BankingSystem.dto.request.transaction.WithdrawalRequest;
+import com.BankingSystem.dto.response.AccountResponse;
+import com.BankingSystem.dto.response.AccountStatementResponse;
 import com.BankingSystem.dto.response.transaction.BeneficiaryResponse;
 import com.BankingSystem.dto.response.transaction.TransactionResponse;
 import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.transactions.Transaction;
 import com.BankingSystem.entity.transactions.TransactionStatus;
 import com.BankingSystem.entity.transactions.TransactionType;
+import com.BankingSystem.entity.users.User;
+import com.BankingSystem.exception.InsufficientBalanceException;
+import com.BankingSystem.exception.InvalidOperationException;
+import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.TransactionRepository;
+import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.transaction.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,6 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -32,8 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account account = accountRepository
                 .findByAccountNumberWithLock(request.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException(
-                        "Account not found: " + request.getAccountNumber()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + request.getAccountNumber()));
 
         account.setBalance(account.getBalance().add(request.getAmount()));
         accountRepository.save(account);
@@ -60,11 +70,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account account = accountRepository
                 .findByAccountNumberWithLock(request.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException(
-                        "Account not found: " + request.getAccountNumber()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + request.getAccountNumber()));
 
         if (account.getBalance().compareTo(request.getAmount()) < 0) {
-            throw new RuntimeException("Insufficient balance");
+            throw new InsufficientBalanceException("Insufficient balance");
         }
 
         account.setBalance(account.getBalance().subtract(request.getAmount()));
@@ -92,33 +101,28 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account senderAccount = accountRepository
                 .findByAccountNumberWithLock(request.getSenderAccountNumber())
-                .orElseThrow(() -> new RuntimeException(
-                        "Sender account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sender account not found"));
 
         Account receiverAccount;
 
         if (request.getTransferType() == TransferRequest.TransferType.PHONE_NUMBER) {
             receiverAccount = accountRepository
                     .findPrimaryAccountByUserPhoneNumber(request.getReceiverIdentifier())
-                    .orElseThrow(() -> new RuntimeException(
-                            "No primary account found for phone number: "
-                                    + request.getReceiverIdentifier()));
+                    .orElseThrow(() -> new ResourceNotFoundException("No primary account found for phone number: " + request.getReceiverIdentifier()));
         }
         else {
             receiverAccount = accountRepository
                     .findByAccountNumberWithLock(request.getReceiverIdentifier())
-                    .orElseThrow(() -> new RuntimeException(
-                            "Receiver account not found"));
+                    .orElseThrow(() ->  new ResourceNotFoundException("Receiver account not found"));
         }
 
         if (senderAccount.getAccountNumber()
                 .equals(receiverAccount.getAccountNumber())) {
-            throw new RuntimeException(
-                    "Cannot transfer to the same account");
+            throw new InvalidOperationException("Cannot transfer to the same account");
         }
 
         if (senderAccount.getBalance().compareTo(request.getAmount()) < 0) {
-            throw new RuntimeException("Insufficient balance");
+            throw new InsufficientBalanceException("Insufficient balance");
         }
 
         senderAccount.setBalance(
@@ -171,14 +175,12 @@ public class TransactionServiceImpl implements TransactionService {
         if (identifierType.equalsIgnoreCase("PHONE_NUMBER")) {
             account = accountRepository
                     .findPrimaryAccountByUserPhoneNumber(identifier)
-                    .orElseThrow(() -> new RuntimeException(
-                            "No account found for phone number: " + identifier));
+                    .orElseThrow(() -> new ResourceNotFoundException("No account found for phone number: " + identifier));
         }
         else {
             account = accountRepository
                     .findByAccountNumber(identifier)
-                    .orElseThrow(() -> new RuntimeException(
-                            "Account not found: " + identifier));
+                    .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + identifier));
         }
 
         return BeneficiaryResponse.builder()
@@ -194,8 +196,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account account = accountRepository
                 .findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException(
-                        "Account not found: " + accountNumber));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountNumber));
 
         return transactionRepository
                 .findByAccountOrderByCreatedAtDesc(account)
@@ -219,6 +220,90 @@ public class TransactionServiceImpl implements TransactionService {
                 .targetAccountNumber(transaction.getTargetAccountNumber())
                 .description(transaction.getDescription())
                 .createdAt(transaction.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public AccountStatementResponse getAccountStatement(
+            String accountNumber,
+            LocalDateTime fromDate,
+            LocalDateTime toDate) {
+
+        Account account = accountRepository
+                .findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Account not found: " + accountNumber));
+
+        List<Transaction> transactions = transactionRepository
+                .findByAccountAndCreatedAtBetweenOrderByCreatedAtDesc(
+                        account, fromDate, toDate);
+
+        BigDecimal totalDeposits = transactionRepository.sumByAccountAndTypeAndDateRange(
+                account, TransactionType.DEPOSIT, fromDate, toDate);
+
+        BigDecimal totalWithdrawals = transactionRepository.sumByAccountAndTypeAndDateRange(
+                account, TransactionType.WITHDRAWAL, fromDate, toDate);
+
+        BigDecimal totalTransferDebits = transactionRepository.sumByAccountAndTypeAndDateRange(
+                account, TransactionType.TRANSFER_DEBIT, fromDate, toDate);
+
+        BigDecimal totalTransferCredits = transactionRepository.sumByAccountAndTypeAndDateRange(
+                account, TransactionType.TRANSFER_CREDIT, fromDate, toDate);
+
+        BigDecimal totalIn = totalDeposits.add(totalTransferCredits);
+        BigDecimal totalOut = totalWithdrawals.add(totalTransferDebits);
+        BigDecimal netFlow = totalIn.subtract(totalOut);
+
+        return AccountStatementResponse.builder()
+                .accountNumber(account.getAccountNumber())
+                .accountHolderName(
+                        account.getUser().getFirstName() + " "
+                                + account.getUser().getLastName())
+                .currentBalance(account.getBalance())
+                .fromDate(fromDate)
+                .toDate(toDate)
+                .totalDeposits(totalIn)
+                .totalWithdrawals(totalOut)
+                .netFlow(netFlow)
+                .transactions(transactions.stream()
+                        .map(this::mapToTransactionResponse)
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public AccountResponse updatePrimaryAccount(Long userId, String accountNumber) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found: " + userId));
+
+        List<Account> userAccounts = accountRepository.findByUser(user);
+
+        Account newPrimary = userAccounts.stream()
+                .filter(a -> a.getAccountNumber().equals(accountNumber))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Account not found or does not belong to this user"));
+
+        userAccounts.forEach(a -> {
+            a.setPrimary(false);
+            accountRepository.save(a);
+        });
+
+        newPrimary.setPrimary(true);
+        Account saved = accountRepository.save(newPrimary);
+
+        return AccountResponse.builder()
+                .id(saved.getId())
+                .accountNumber(saved.getAccountNumber())
+                .accountType(saved.getAccountType())
+                .balance(saved.getBalance())
+                .branchName(saved.getBranchName())
+                .ownerFirstName(saved.getUser().getFirstName())
+                .ownerLastName(saved.getUser().getLastName())
+                .createdAt(saved.getCreatedAt())
                 .build();
     }
 }

@@ -4,6 +4,7 @@ import com.BankingSystem.dto.request.CreateAccountRequest;
 import com.BankingSystem.dto.response.AccountResponse;
 import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.users.User;
+import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.user.AccountService;
@@ -25,7 +26,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountResponse createAccount(CreateAccountRequest request) {
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+                .orElseThrow(() ->  new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
         String accountNumber = generateUniqueAccountNumber();
 
@@ -45,7 +46,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponse getAccountByAccountNumber(String accountNumber) {
         Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Account not found with account number: " + accountNumber));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountNumber));
 
         return mapToAccountResponse(account);
     }
@@ -53,7 +54,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<AccountResponse> getAccountsByUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         return accountRepository.findByUser(user)
                 .stream()

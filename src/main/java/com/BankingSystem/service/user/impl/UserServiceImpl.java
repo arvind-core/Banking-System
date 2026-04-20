@@ -4,6 +4,8 @@ import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;
 import com.BankingSystem.entity.users.Role;
 import com.BankingSystem.entity.users.User;
+import com.BankingSystem.exception.DuplicateResourceException;
+import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +23,11 @@ public class UserServiceImpl implements UserService {
     public UserResponse registerUser(UserRegistrationRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+             throw new DuplicateResourceException("Email already registered");
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Phone number already registered");
+            throw new DuplicateResourceException("Phone number already registered");
         }
 
         User user = User.builder()
@@ -46,7 +48,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
         return mapToUserResponse(user);
     }
@@ -54,7 +56,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         return mapToUserResponse(user);
     }

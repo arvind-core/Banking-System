@@ -17,13 +17,13 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         AccountResponse response = accountService.createAccount(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{accountNumber}")
+    @GetMapping("/get/{accountNumber}")
     public ResponseEntity<AccountResponse> getAccountByNumber(@PathVariable String accountNumber) {
         AccountResponse response = accountService.getAccountByAccountNumber(accountNumber);
         return ResponseEntity.ok(response);
