@@ -100,52 +100,85 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponse transfer(TransferRequest request) {
 
         Account senderAccount = accountRepository
-                .findByAccountNumberWithLock(request.getSenderAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Sender account not found"));
+                .findByAccountNumberAndIsActiveTrue(request.getSenderAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Sender account not found"));
 
         Account receiverAccount;
 
         if (request.getTransferType() == TransferRequest.TransferType.PHONE_NUMBER) {
             receiverAccount = accountRepository
                     .findPrimaryAccountByUserPhoneNumber(request.getReceiverIdentifier())
-                    .orElseThrow(() -> new ResourceNotFoundException("No primary account found for phone number: " + request.getReceiverIdentifier()));
-        }
-        else {
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No primary account found for phone number: "
+                                    + request.getReceiverIdentifier()));
+        } else {
             receiverAccount = accountRepository
-                    .findByAccountNumberWithLock(request.getReceiverIdentifier())
-                    .orElseThrow(() ->  new ResourceNotFoundException("Receiver account not found"));
+                    .findByAccountNumberAndIsActiveTrue(request.getReceiverIdentifier())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Receiver account not found"));
         }
 
         if (senderAccount.getAccountNumber()
                 .equals(receiverAccount.getAccountNumber())) {
-            throw new InvalidOperationException("Cannot transfer to the same account");
+            throw new InvalidOperationException(
+                    "Cannot transfer to the same account");
         }
 
-        if (senderAccount.getBalance().compareTo(request.getAmount()) < 0) {
+        // DEADLOCK PREVENTION — always lock smaller account number first
+        Account firstLock;
+        Account secondLock;
+
+        if (senderAccount.getAccountNumber()
+                .compareTo(receiverAccount.getAccountNumber()) < 0) {
+            firstLock = accountRepository
+                    .findByAccountNumberWithLock(senderAccount.getAccountNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Sender account not found"));
+            secondLock = accountRepository
+                    .findByAccountNumberWithLock(receiverAccount.getAccountNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Receiver account not found"));
+        } else {
+            firstLock = accountRepository
+                    .findByAccountNumberWithLock(receiverAccount.getAccountNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Receiver account not found"));
+            secondLock = accountRepository
+                    .findByAccountNumberWithLock(senderAccount.getAccountNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Sender account not found"));
+        }
+
+        Account lockedSender = firstLock.getAccountNumber()
+                .equals(senderAccount.getAccountNumber()) ? firstLock : secondLock;
+        Account lockedReceiver = firstLock.getAccountNumber()
+                .equals(receiverAccount.getAccountNumber()) ? firstLock : secondLock;
+
+        if (lockedSender.getBalance().compareTo(request.getAmount()) < 0) {
             throw new InsufficientBalanceException("Insufficient balance");
         }
 
-        senderAccount.setBalance(
-                senderAccount.getBalance().subtract(request.getAmount()));
-        receiverAccount.setBalance(
-                receiverAccount.getBalance().add(request.getAmount()));
+        lockedSender.setBalance(
+                lockedSender.getBalance().subtract(request.getAmount()));
+        lockedReceiver.setBalance(
+                lockedReceiver.getBalance().add(request.getAmount()));
 
-        accountRepository.save(senderAccount);
-        accountRepository.save(receiverAccount);
+        accountRepository.save(lockedSender);
+        accountRepository.save(lockedReceiver);
 
         String reference = generateReference();
         String description = request.getDescription() != null
-                ? request.getDescription()
-                : "Transfer";
+                ? request.getDescription() : "Transfer";
 
         Transaction debitTransaction = Transaction.builder()
                 .transactionReference(reference + "-DR")
                 .transactionType(TransactionType.TRANSFER_DEBIT)
                 .status(TransactionStatus.SUCCESS)
                 .amount(request.getAmount())
-                .balanceAfterTransaction(senderAccount.getBalance())
-                .account(senderAccount)
-                .targetAccountNumber(receiverAccount.getAccountNumber())
+                .balanceAfterTransaction(lockedSender.getBalance())
+                .account(lockedSender)
+                .targetAccountNumber(lockedReceiver.getAccountNumber())
                 .description(description)
                 .build();
 
@@ -154,9 +187,9 @@ public class TransactionServiceImpl implements TransactionService {
                 .transactionType(TransactionType.TRANSFER_CREDIT)
                 .status(TransactionStatus.SUCCESS)
                 .amount(request.getAmount())
-                .balanceAfterTransaction(receiverAccount.getBalance())
-                .account(receiverAccount)
-                .targetAccountNumber(senderAccount.getAccountNumber())
+                .balanceAfterTransaction(lockedReceiver.getBalance())
+                .account(lockedReceiver)
+                .targetAccountNumber(lockedSender.getAccountNumber())
                 .description(description)
                 .build();
 
