@@ -34,4 +34,11 @@ public class AccountController {
         List<AccountResponse> response = accountService.getAccountsByUser(userId);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/close/{accountNumber}")
+    public ResponseEntity<AccountResponse> closeAccount(
+            @PathVariable String accountNumber) {
+        AccountResponse response = accountService.closeAccount(accountNumber);
+        return ResponseEntity.ok(response);
+    }
 }

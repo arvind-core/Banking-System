@@ -11,4 +11,6 @@ public interface AccountService {
     AccountResponse getAccountByAccountNumber(String accountNumber);
     
     List<AccountResponse> getAccountsByUser(Long userId);
+
+    AccountResponse closeAccount(String accountNumber);
 }

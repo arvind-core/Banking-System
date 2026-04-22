@@ -20,10 +20,14 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     
     Boolean existsByAccountNumber(String accountNumber);
 
+    List<Account> findByUserAndIsActiveTrue(User user);
+
+    Optional<Account> findByAccountNumberAndIsActiveTrue(String accountNumber);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Account a WHERE a.accountNumber = :accountNumber")
+    @Query("SELECT a FROM Account a WHERE a.accountNumber = :accountNumber AND a.isActive = true")
     Optional<Account> findByAccountNumberWithLock(@Param("accountNumber") String accountNumber);
 
-    @Query("SELECT a FROM Account a WHERE a.user.phoneNumber = :phoneNumber AND a.isPrimary = true")
+    @Query("SELECT a FROM Account a WHERE a.user.phoneNumber = :phoneNumber AND a.isPrimary = true AND a.isActive = true")
     Optional<Account> findPrimaryAccountByUserPhoneNumber(@Param("phoneNumber") String phoneNumber);
 }
