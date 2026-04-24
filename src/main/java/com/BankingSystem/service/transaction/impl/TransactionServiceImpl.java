@@ -19,7 +19,10 @@ import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.TransactionRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.transaction.TransactionService;
+import com.BankingSystem.util.NotificationEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -61,6 +66,10 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
+
+        eventPublisher.publishEvent(
+                NotificationEvent.forTransaction(this, saved, account));
+
         return mapToTransactionResponse(saved);
     }
 
@@ -92,6 +101,10 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
+
+        eventPublisher.publishEvent(
+                NotificationEvent.forTransaction(this, saved, account));
+
         return mapToTransactionResponse(saved);
     }
 
@@ -195,6 +208,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.save(debitTransaction);
         transactionRepository.save(creditTransaction);
+
+        eventPublisher.publishEvent(
+                NotificationEvent.forTransaction(this, debitTransaction, lockedSender));
+        eventPublisher.publishEvent(
+                NotificationEvent.forTransaction(this, creditTransaction, lockedReceiver));
 
         return mapToTransactionResponse(debitTransaction);
     }

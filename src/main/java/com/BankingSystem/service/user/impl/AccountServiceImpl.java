@@ -9,7 +9,10 @@ import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.user.AccountService;
+import com.BankingSystem.util.NotificationEvent;
+import com.BankingSystem.util.NotificationEventType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +27,8 @@ public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public AccountResponse createAccount(CreateAccountRequest request) {
@@ -46,6 +51,11 @@ public class AccountServiceImpl implements AccountService {
                 .build();
 
         Account savedAccount = accountRepository.save(account);
+
+        eventPublisher.publishEvent(
+                NotificationEvent.forAccount(this,
+                        NotificationEventType.ACCOUNT_CREATED,
+                        savedAccount));
 
         return mapToAccountResponse(savedAccount);
     }

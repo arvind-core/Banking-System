@@ -1,0 +1,48 @@
+package com.BankingSystem.util;
+
+public enum NotificationEventType {
+
+    // Account events
+    ACCOUNT_CREATED,
+    ACCOUNT_CLOSED,
+    PRIMARY_ACCOUNT_UPDATED,
+
+    // Security events
+    LOGIN_SUCCESSFUL,
+    PASSWORD_CHANGED,
+    EMAIL_UPDATED,
+    PHONE_UPDATED,
+
+    // Transaction events
+    DEPOSIT,
+    WITHDRAWAL,
+    TRANSFER_SENT,
+    TRANSFER_RECEIVED,
+
+    // Loan events
+    LOAN_APPLICATION_SUBMITTED,
+    LOAN_UNDER_REVIEW,
+    LOAN_APPROVED,
+    LOAN_REJECTED,
+    LOAN_DISBURSED,
+    EMI_DUE_REMINDER,
+    EMI_DEDUCTED,
+    EMI_MISSED,
+    LOAN_FULLY_REPAID,
+
+    // Credit card events
+    CARD_APPLICATION_SUBMITTED,
+    CARD_APPROVED,
+    CARD_REJECTED,
+    CARD_ACTIVATED,
+    CARD_BLOCKED,
+    BILLING_CYCLE_GENERATED,
+    PAYMENT_DUE_REMINDER,
+    CARD_PAYMENT_RECEIVED,
+
+    // Money request events
+    MONEY_REQUEST_RECEIVED,
+    MONEY_REQUEST_ACCEPTED,
+    MONEY_REQUEST_REJECTED,
+    MONEY_REQUEST_EXPIRED
+}
