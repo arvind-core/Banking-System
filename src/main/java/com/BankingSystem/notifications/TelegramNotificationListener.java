@@ -1,7 +1,9 @@
 package com.BankingSystem.notifications;
 
+import com.BankingSystem.repo.NotificationPreferenceRepository;
+import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
-import static com.BankingSystem.Akash.BANK_NAME;
+import static com.BankingSystem.BankConfig.BANK_NAME;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +16,26 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TelegramNotificationListener {
 
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
+    private final UserRepository userRepository;
+
     @Async
     @EventListener
     public void handleNotification(NotificationEvent event) {
         try {
-            String message = buildTelegramMessage(event);
+            notificationPreferenceRepository
+                    .findByUser(userRepository
+                            .findByPhoneNumberAndIsActiveTrue(event.getRecipientPhone())
+                            .orElse(null))
+                            .ifPresent(pref -> {
+                                if(pref.isTelegramEnabled()){
+                                    String message = buildTelegramMessage(event);
 
-            // TODO: Replace with real Telegram Bot API implementation
-            log.info("TELEGRAM → TO: {} | MESSAGE: {}",
-                    event.getRecipientPhone(), message);
+                                    // TODO: Replace with real Telegram Bot API implementation
+                                    log.info("TELEGRAM → TO: {} | MESSAGE: {}",
+                                            event.getRecipientPhone(), message);
+                                }
+                            });
 
         } catch (Exception e) {
             log.error("Failed to send Telegram notification for event: {} | Error: {}",

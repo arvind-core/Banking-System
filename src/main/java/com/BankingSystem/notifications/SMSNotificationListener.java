@@ -1,5 +1,7 @@
 package com.BankingSystem.notifications;
 
+import com.BankingSystem.repo.NotificationPreferenceRepository;
+import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,22 +9,33 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import static com.BankingSystem.Akash.BANK_NAME;
+import static com.BankingSystem.BankConfig.BANK_NAME;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SMSNotificationListener {
 
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
+    private final UserRepository userRepository;
+
     @Async
     @EventListener
     public void handleNotification(NotificationEvent event) {
         try {
-            String message = buildSMSMessage(event);
+            // Check if a user has sms enbled
 
-            // TODO: Replace with real Twilio implementation
-            log.info("SMS → TO: {} | MESSAGE: {}",
-                    event.getRecipientPhone(), message);
+            notificationPreferenceRepository
+                    .findByUser(userRepository
+                            .findByPhoneNumberAndIsActiveTrue(event.getRecipientPhone())
+                            .orElse(null))
+                            .ifPresent(pref -> {
+                                if (pref.isSmsEnabled()) {
+                                    String message = buildSMSMessage(event);
+                                    log.info("SMS → TO: {} | MESSAGE: {}",
+                                            event.getRecipientPhone(), message);
+                                }
+                            });
 
         } catch (Exception e) {
             log.error("Failed to send SMS for event: {} | Error: {}",

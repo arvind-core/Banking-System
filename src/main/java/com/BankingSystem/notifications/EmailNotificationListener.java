@@ -1,5 +1,7 @@
 package com.BankingSystem.notifications;
 
+import com.BankingSystem.repo.NotificationPreferenceRepository;
+import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,24 +9,34 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import static com.BankingSystem.Akash.BANK_NAME;
+import static com.BankingSystem.BankConfig.BANK_NAME;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class EmailNotificationListener {
 
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
+    private final UserRepository userRepository;
+
     @Async
     @EventListener
     public void handleNotification(NotificationEvent event) {
         try {
-            String subject = buildSubject(event);
-            String body = buildBody(event);
-
-            // TODO: Replace with real JavaMailSender implementation
-            log.info("EMAIL → TO: {} | SUBJECT: {} | BODY: {}",
-                    event.getRecipientEmail(), subject, body);
-
+            // Check if user has email enabled
+            notificationPreferenceRepository
+                    .findByUser(userRepository
+                            .findByEmailAndIsActiveTrue(event.getRecipientEmail())
+                            .orElse(null))
+                            .ifPresent(pref -> {
+                                if (pref.isEmailEnabled()) {
+                                String subject = buildSubject(event);
+                                String body = buildBody(event);
+                                // TODO: Replace with real JavaMailSender
+                                log.info("EMAIL → TO: {} | SUBJECT: {} | BODY: {}",
+                                    event.getRecipientEmail(), subject, body);
+                            }
+                    });
         } catch (Exception e) {
             log.error("Failed to send email for event: {} | Error: {}",
                     event.getEventType(), e.getMessage());

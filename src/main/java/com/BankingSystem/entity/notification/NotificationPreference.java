@@ -1,50 +1,40 @@
-package com.BankingSystem.entity.account;
+package com.BankingSystem.entity.notification;
 
-import com.BankingSystem.entity.bank.Branch;
 import com.BankingSystem.entity.users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "notification_preferences")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Account {
+public class NotificationPreference {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String accountNumber;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AccountType accountType;
-
-    @Column(nullable = false)
-    private BigDecimal balance;
-
-    @ManyToOne
-    @JoinColumn(name = "branch_id", nullable = false)
-    private Branch branch;
-
-    @Column(nullable = false)
-    private boolean isPrimary = false;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     @Column(nullable = false)
-    private boolean isActive = true;
+    private boolean emailEnabled = true;
+
+    @Column(nullable = false)
+    private boolean smsEnabled = true;
+
+    @Column(nullable = false)
+    private boolean telegramEnabled = true;
+
+    @Column
+    private String telegramChatId;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

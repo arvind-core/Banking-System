@@ -7,6 +7,7 @@ import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
+import com.BankingSystem.repo.BranchRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.user.AccountService;
 import com.BankingSystem.util.NotificationEvent;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.BankingSystem.entity.bank.Branch;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,22 +32,36 @@ public class AccountServiceImpl implements AccountService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final BranchRepository branchRepository;
+
     @Override
     public AccountResponse createAccount(CreateAccountRequest request) {
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() ->  new ResourceNotFoundException("User not found with id: " + request.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with id: " + request.getUserId()));
+
+        Branch branch = branchRepository.findByBranchCode(request.getBranchCode())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Branch not found with code: " + request.getBranchCode()
+                                + ". Please provide a valid branch code."));
+
+        if (!branch.isActive()) {
+            throw new InvalidOperationException(
+                    "Branch " + branch.getBranchName() + " is currently inactive.");
+        }
 
         String accountNumber = generateUniqueAccountNumber();
 
-        List<Account> existingAccounts = accountRepository.findByUserAndIsActiveTrue(user);
+        List<Account> existingAccounts = accountRepository
+                .findByUserAndIsActiveTrue(user);
         boolean isFirstAccount = existingAccounts.isEmpty();
 
         Account account = Account.builder()
                 .accountNumber(accountNumber)
                 .accountType(request.getAccountType())
                 .balance(BigDecimal.ZERO)
-                .branchName(request.getBranchName())
+                .branch(branch)
                 .isPrimary(isFirstAccount)
                 .user(user)
                 .build();
@@ -106,7 +122,9 @@ public class AccountServiceImpl implements AccountService {
                 .accountNumber(saved.getAccountNumber())
                 .accountType(saved.getAccountType())
                 .balance(saved.getBalance())
-                .branchName(saved.getBranchName())
+                .branchName(saved.getBranch().getBranchName())
+                .branchCode(saved.getBranch().getBranchCode())
+                .branchCity(saved.getBranch().getCity())
                 .ownerFirstName(saved.getUser().getFirstName())
                 .ownerLastName(saved.getUser().getLastName())
                 .createdAt(saved.getCreatedAt())
@@ -131,7 +149,9 @@ public class AccountServiceImpl implements AccountService {
                 .accountNumber(account.getAccountNumber())
                 .accountType(account.getAccountType())
                 .balance(account.getBalance())
-                .branchName(account.getBranchName())
+                .branchName(account.getBranch().getBranchName())
+                .branchCode(account.getBranch().getBranchCode())
+                .branchCity(account.getBranch().getCity())
                 .ownerFirstName(account.getUser().getFirstName())
                 .ownerLastName(account.getUser().getLastName())
                 .createdAt(account.getCreatedAt())

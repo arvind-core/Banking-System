@@ -238,7 +238,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .accountNumber(account.getAccountNumber())
                 .accountHolderFirstName(account.getUser().getFirstName())
                 .accountHolderLastName(account.getUser().getLastName())
-                .bankBranch(account.getBranchName())
+                .bankBranch(account.getBranch().getBranchName())
                 .build();
     }
 
@@ -351,7 +351,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .accountNumber(saved.getAccountNumber())
                 .accountType(saved.getAccountType())
                 .balance(saved.getBalance())
-                .branchName(saved.getBranchName())
+                .branchName(saved.getBranch().getBranchName())
                 .ownerFirstName(saved.getUser().getFirstName())
                 .ownerLastName(saved.getUser().getLastName())
                 .createdAt(saved.getCreatedAt())

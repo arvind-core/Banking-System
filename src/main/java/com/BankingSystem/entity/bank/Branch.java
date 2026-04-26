@@ -1,47 +1,44 @@
-package com.BankingSystem.entity.account;
+package com.BankingSystem.entity.bank;
 
-import com.BankingSystem.entity.bank.Branch;
-import com.BankingSystem.entity.users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "branches")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Account {
+public class Branch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String accountNumber;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AccountType accountType;
+    private String branchCode;
 
     @Column(nullable = false)
-    private BigDecimal balance;
-
-    @ManyToOne
-    @JoinColumn(name = "branch_id", nullable = false)
-    private Branch branch;
+    private String branchName;
 
     @Column(nullable = false)
-    private boolean isPrimary = false;
+    private String city;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private String state;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false, unique = true)
+    private String ifscCode;
+
+    @Column(nullable = false)
+    private String contactNumber;
 
     @Column(nullable = false)
     private boolean isActive = true;

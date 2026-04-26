@@ -15,6 +15,8 @@ public class AccountResponse {
     private AccountType accountType;
     private BigDecimal balance;
     private String branchName;
+    private String branchCode;
+    private String branchCity;
     private String ownerFirstName;
     private String ownerLastName;
     private LocalDateTime createdAt;

@@ -68,7 +68,7 @@ public class NotificationEvent extends ApplicationEvent {
         Map<String, Object> data = new HashMap<>();
         data.put("accountNumber", account.getAccountNumber());
         data.put("accountType", account.getAccountType());
-        data.put("branchName", account.getBranchName());
+        data.put("branchName", account.getBranch().getBranchName());
 
         return new NotificationEvent(
                 source,

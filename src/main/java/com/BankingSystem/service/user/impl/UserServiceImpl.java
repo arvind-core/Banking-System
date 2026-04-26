@@ -2,10 +2,12 @@ package com.BankingSystem.service.user.impl;
 
 import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;
+import com.BankingSystem.entity.notification.NotificationPreference;
 import com.BankingSystem.entity.users.Role;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.DuplicateResourceException;
 import com.BankingSystem.exception.ResourceNotFoundException;
+import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
 
     @Override
     public UserResponse registerUser(UserRegistrationRequest request) {
@@ -41,6 +45,15 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        NotificationPreference preference = NotificationPreference.builder()
+                .user(savedUser)
+                .emailEnabled(true)
+                .smsEnabled(true)
+                .telegramEnabled(true)
+                .build();
+
+        notificationPreferenceRepository.save(preference);
 
         return mapToUserResponse(savedUser);
     }
