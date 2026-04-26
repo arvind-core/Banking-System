@@ -1,5 +1,6 @@
 package com.BankingSystem.service.user.impl;
 
+import com.BankingSystem.BankConfig;
 import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;
 import com.BankingSystem.entity.notification.NotificationPreference;
@@ -9,6 +10,7 @@ import com.BankingSystem.exception.DuplicateResourceException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
+import com.BankingSystem.service.trust.TrustScoreService;
 import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final NotificationPreferenceRepository notificationPreferenceRepository;
+    private final TrustScoreService trustScoreService;
 
     @Override
     public UserResponse registerUser(UserRegistrationRequest request) {
@@ -40,8 +43,12 @@ public class UserServiceImpl implements UserService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phoneNumber(request.getPhoneNumber())
+                .dateOfBirth(request.getDateOfBirth())
+                .annualIncome(request.getAnnualIncome())
+                .profession(request.getProfession())
                 .address(request.getAddress())
                 .role(Role.CUSTOMER)
+                .trustScore(BankConfig.INITIAL_TRUST_SCORE)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -75,6 +82,13 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponse mapToUserResponse(User user) {
+        int age = user.getDateOfBirth() != null
+                ? java.time.Period.between(user.getDateOfBirth(),
+                java.time.LocalDate.now()).getYears()
+                : 0;
+
+        String category = trustScoreService.getScoreCategory(user.getTrustScore());
+
         return UserResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
@@ -82,6 +96,11 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .address(user.getAddress())
+                .dateOfBirth(user.getDateOfBirth())
+                .age(age)
+                .annualIncome(user.getAnnualIncome())
+                .trustScore(user.getTrustScore())
+                .trustScoreCategory(category)
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .build();

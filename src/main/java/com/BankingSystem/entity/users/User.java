@@ -5,7 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static com.BankingSystem.BankConfig.INITIAL_TRUST_SCORE;
 
 @Entity
 @Table(name = "users")
@@ -24,6 +28,16 @@ public class User {
 
     @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false)
+    private LocalDate dateOfBirth;
+
+    @Column
+    private BigDecimal annualIncome;
+
+    @Column(nullable = false)
+    private Integer trustScore = INITIAL_TRUST_SCORE;
+
 
     @Column(nullable = false, unique = true)
     private String email;

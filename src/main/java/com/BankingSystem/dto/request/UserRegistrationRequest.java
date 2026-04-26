@@ -1,10 +1,11 @@
 package com.BankingSystem.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.BankingSystem.entity.users.Profession;
+import jakarta.validation.constraints.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class UserRegistrationRequest {
@@ -27,6 +28,17 @@ public class UserRegistrationRequest {
     @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
     private String phoneNumber;
 
+    @NotNull(message = "Profession is required")
+    private Profession profession;
+
     @NotBlank(message = "Address is required")
     private String address;
+
+    @NotNull(message = "Date of Birth is required")
+    private LocalDate dateOfBirth;
+
+    @NotNull(message = "Annual Income is required")
+    @DecimalMin(value = "0.0", message = "Annual income can not be negative")
+    private BigDecimal annualIncome;
+
 }

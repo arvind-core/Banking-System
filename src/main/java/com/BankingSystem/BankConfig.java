@@ -43,4 +43,31 @@ public class BankConfig {
 
     // Branch Transfer
     public static final int BRANCH_TRANSFER_APPROVAL_DAYS = 7;
+
+    // Loan Eligibility age limits
+
+    public static final int MIN_LOAN_AGE = 21;
+    public static final int MAX_LOAN_AGE = 60;
+    public static final int MIN_HOME_LOAN_AGE = 21;
+    public static final int MAX_HOME_LOAN_AGE = 65;
+
+    public static final int TRUST_SCORE_PREMIUM = 80;
+    public static final int TRUST_SCORE_GOOD = 60;
+    public static final int TRUST_SCORE_AVERAGE = 40;
+    public static final int TRUST_SCORE_RISKY = 20;
+    public static final int INITIAL_TRUST_SCORE = 50;
+
+    public static final int SCORE_EMI_PAID_ON_TIME = 2;
+    public static final int SCORE_LOAN_FULLY_REPAID = 5;
+    public static final int SCORE_CREDIT_CARD_FULL_PAYMENT = 2;
+    public static final int SCORE_ACCOUNT_AGE_BONUS = 1;
+    public static final int SCORE_ACTIVE_USAGE_BONUS = 1;
+    public static final int SCORE_EMI_MISSED = -5;
+    public static final int SCORE_EMI_LATE = -2;
+    public static final int SCORE_BELOW_MIN_BALANCE = -1;
+    public static final int SCORE_MULTIPLE_LOAN_APPLICATIONS = -2;
+    public static final int SCORE_CARD_MIN_DUE_MISSED = -3;
+
+
+
 }
