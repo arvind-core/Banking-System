@@ -30,6 +30,10 @@ public class BankConfig {
     public static final long REFRESH_TOKEN_EXPIRY_MS = 604800000L;  // 7 days
 
     // Loan Configuration
+
+    public static final int MIN_TENURE_MONTHS_FOR_LOAN = 3;
+    public static final int MAX_TENURE_MONTHS_FOR_LOAN = 360;
+
     public static final double MIN_LOAN_AMOUNT = 10000.0;
     public static final double MAX_PERSONAL_LOAN_AMOUNT = 1000000.0;
     public static final double MAX_HOME_LOAN_AMOUNT = 10000000.0;
