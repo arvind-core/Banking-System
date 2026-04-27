@@ -48,7 +48,9 @@ public class BankConfig {
     // Branch Transfer
     public static final int BRANCH_TRANSFER_APPROVAL_DAYS = 7;
 
-    // Loan Eligibility age limits
+    // Loan Eligibility age limits\
+
+    public static final int MAX_LOAN_APPLICATIONS = 3;
 
     public static final int MIN_LOAN_AGE = 21;
     public static final int MAX_LOAN_AGE = 60;
@@ -72,6 +74,16 @@ public class BankConfig {
     public static final int SCORE_MULTIPLE_LOAN_APPLICATIONS = -2;
     public static final int SCORE_CARD_MIN_DUE_MISSED = -3;
 
+    // Standard Loan rates on different loans, discount may be applied in service layer
+
+
+    public static final double LOAN_INTEREST_RATE_FOR_HOME = 8.5;
+    public static final double LOAN_INTEREST_RATE_FOR_CAR = 9.5;
+    public static final double LOAN_INTEREST_RATE_FOR_EDUCATION = 8.0;
+    public static final double LOAN_INTEREST_RATE_FOR_PERSONAL = 12.0;
+    public static final double LOAN_INTEREST_RATE_FOR_BUSINESS = 11.0;
+    public static final double LOAN_INTEREST_RATE_FOR_GOLD = 7.5;
 
 
 }
+

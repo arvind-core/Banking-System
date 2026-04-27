@@ -3,10 +3,12 @@ package com.BankingSystem.dto.response;
 import com.BankingSystem.entity.loan.InterestMethod;
 import com.BankingSystem.entity.loan.LoanStatus;
 import com.BankingSystem.entity.loan.LoanType;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Builder
 public class LoanApplicationResponse {
     private Long id;
     private String applicationReference;

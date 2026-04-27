@@ -5,6 +5,7 @@ import com.BankingSystem.entity.bank.Branch;
 import com.BankingSystem.entity.users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class LoanAccount {
 
     @Id
@@ -24,7 +26,7 @@ public class LoanAccount {
     private Long id;
 
     @Column(nullable = false, unique = false)
-    private Long loanAccountNumber;
+    private String loanAccountNumber;
 
     @OneToOne
     @JoinColumn(name = "application_id", nullable = false)
@@ -58,7 +60,7 @@ public class LoanAccount {
     private BigDecimal principalAmount;
 
     @Column(nullable = false)
-    private Integer annualInterestRate;
+    private BigDecimal annualInterestRate;
 
     @Column(nullable = false)
     private Integer tenureMonths;
@@ -67,7 +69,7 @@ public class LoanAccount {
     private BigDecimal emiAmount;
 
     @Column(nullable = false)
-    private BigDecimal outStandingPrincipal;
+    private BigDecimal outstandingPrincipal;
 
     @Column(nullable = false)
     private BigDecimal totalInterestPayable;
