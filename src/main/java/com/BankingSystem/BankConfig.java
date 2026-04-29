@@ -84,6 +84,17 @@ public class BankConfig {
     public static final double LOAN_INTEREST_RATE_FOR_BUSINESS = 11.0;
     public static final double LOAN_INTEREST_RATE_FOR_GOLD = 7.5;
 
+    // Bank Capital Configuration
+
+    private static final double MAX_LENDING_RATION = 0.80;
+    private static final double CREDIT_CARD_LATE_PENALTY_ANNUAL = 36.0;
+    private static final double CREDIT_CARD_LATE_PENALTY_MONTHLY = 3.0;
+    private static final int CREDIT_CARD_PAYMENT_DUE_DAYS = 15;
+    private static final int CREDIT_CARD_BILLING_CYCLE_DAY = 1;
+    private static final double CREDIT_CARD_MIN_DUE_PERCENTAGE = 5.0;
+    private static final double CREDIT_CARD_MIN_DUE_FLOOR = 500.0;
+    private static final double REWARD_POINTS_PER_100_SPENT = 1.0;
+
 
 }
 

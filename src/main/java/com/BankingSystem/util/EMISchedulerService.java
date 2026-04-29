@@ -1,0 +1,295 @@
+package com.BankingSystem.util;
+
+import com.BankingSystem.entity.account.Account;
+import com.BankingSystem.entity.loan.EMISchedule;
+import com.BankingSystem.entity.loan.EMIStatus;
+import com.BankingSystem.entity.loan.LoanAccount;
+import com.BankingSystem.entity.loan.LoanStatus;
+import com.BankingSystem.entity.transactions.Transaction;
+import com.BankingSystem.entity.transactions.TransactionStatus;
+import com.BankingSystem.entity.transactions.TransactionType;
+import com.BankingSystem.repo.AccountRepository;
+import com.BankingSystem.repo.EMIScheduleRepository;
+import com.BankingSystem.repo.LoanAccountRepository;
+import com.BankingSystem.repo.TransactionRepository;
+import com.BankingSystem.service.trust.TrustScoreService;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.BankingSystem.BankConfig.*;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class EMISchedulerService {
+
+    private final EMIScheduleRepository emiScheduleRepository;
+    private final LoanAccountRepository loanAccountRepository;
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
+    private final TrustScoreService trustScoreService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void processEMIsDueToday(){
+        LocalDate today = LocalDate.now();
+        log.info("EMI Scheduler started for date : {}", today);
+
+        List<EMISchedule> emisDueToday = emiScheduleRepository.findEmisDueToday(today);
+
+        log.info("Found {} EMIs due today", emisDueToday.size());
+
+        int successCount = 0;
+        int failedCount = 0;
+
+        for (EMISchedule emi : emisDueToday){
+            try{
+                processIndividualEmi(emi);
+                successCount++;
+            }catch (Exception e){
+                log.error("Failed to process EMI id: {} for loan: {} | Error: {}",
+                        emi.getId(),
+                        emi.getLoanAccount().getLoanAccountNumber(),
+                        e.getMessage());
+                failedCount++;
+            }
+        }
+
+        log.info("EMI Scheduler completed. Success: {} Failed: {}",successCount,failedCount);
+    }
+
+    // Runs every day at 10 AM -sends reminders 3 days before due date
+
+    @Scheduled(cron = "0 0 10 * * *")
+    public void sendEMIReminders() {
+
+        LocalDate reminderDate = LocalDate.now().plusDays(3);
+        List<EMISchedule> upcomingEMIs = emiScheduleRepository.findEmisForReminder(reminderDate);
+
+        log.info("Sending EMI reminders for {} upcoming EMIs", upcomingEMIs.size());
+
+        upcomingEMIs.forEach(emi -> {
+            try{
+                sendEMIReminderNotification(emi);
+            }catch (Exception e){
+                log.error("Failed to send reminder for EMI id : {}",emi.getId());
+            }
+        });
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processIndividualEmi(EMISchedule emi){
+        EMISchedule freshEMI = emiScheduleRepository.findById(emi.getId()).orElseThrow();
+
+        if(freshEMI.getStatus() != EMIStatus.PENDING){
+            log.info("EMI {} already processed with status {}. Skipping",freshEMI.getId(),freshEMI.getStatus());
+            return;
+        }
+
+        LoanAccount loanAccount = freshEMI.getLoanAccount();
+        Account disbursementAccount = accountRepository
+                .findByAccountNumberWithLock(loanAccount
+                        .getDisbursementAccount()
+                        .getAccountNumber())
+                .orElseThrow();
+
+        if(disbursementAccount.getBalance().compareTo(freshEMI.getEmiAmount()) >= 0){
+            processSuccessfulEMI(freshEMI,loanAccount,disbursementAccount);
+        }
+        else {
+            processMissedEMI(freshEMI,loanAccount,disbursementAccount);
+        }
+    }
+
+    private void processSuccessfulEMI(EMISchedule emi, LoanAccount loanAccount, Account account){
+
+        // deduct EMI from account
+
+        account.setBalance(account.getBalance().subtract(emi.getEmiAmount()));
+        accountRepository.save(account);
+
+        // Update EMI status
+        emi.setStatus(EMIStatus.PAID);
+        emi.setPaidDate(LocalDate.now());
+        emiScheduleRepository.save(emi);
+
+        // Update Loan Account
+
+        loanAccount.setOutstandingPrincipal(loanAccount.getOutstandingPrincipal().subtract(emi.getPrincipalComponent()));
+        loanAccount.setTotalAmountPaid(loanAccount.getTotalAmountPaid().add(emi.getEmiAmount()));
+        loanAccount.setEmisPaid(loanAccount.getEmisPaid() + 1);
+        loanAccount.setEmisRemaining(loanAccount.getEmisRemaining() - 1);
+        loanAccount.setNextEmiDate(emi.getDueDate().plusMonths(1));
+
+        // Check if loan is fully repaid
+        if (loanAccount.getEmisRemaining() == 0){
+            loanAccount.setStatus(LoanStatus.CLOSED);
+            loanAccount.setClosureDate(LocalDate.now());
+            log.info("Loan {} fully repaid and closed",loanAccount.getLoanAccountNumber());
+
+            // Increase Trust Score for Completing loan
+            trustScoreService.increaseScore(loanAccount.getUser().getId(), SCORE_LOAN_FULLY_REPAID, ("Loan fully repaid : "+ loanAccount.getLoanAccountNumber()));
+
+            // Send Loan fully repaid notification
+            sendLoanFullyRepaidNotification(loanAccount);
+        }
+
+        loanAccountRepository.save(loanAccount);
+
+        Transaction transaction = Transaction.builder()
+                .transactionReference("EMI-" + UUID.randomUUID().toString().substring(0,8).toUpperCase())
+                .transactionType(TransactionType.WITHDRAWAL)
+                .status(TransactionStatus.SUCCESS)
+                .amount(emi.getEmiAmount())
+                .balanceAfterTransaction(account.getBalance())
+                .account(account)
+                .description("EMI payment - " + loanAccount.getLoanAccountNumber() + "installment " + emi.getInstallmentNumber())
+                .build();
+
+        transactionRepository.save(transaction);
+
+        //Increase Trust score for on time payment
+        trustScoreService.increaseScore(loanAccount.getUser().getId(),
+                SCORE_EMI_PAID_ON_TIME,
+                "EMI pai on time for loan: " + loanAccount.getLoanAccountNumber());
+
+
+        // send success notification
+        sendEMISuccessNotification(emi,loanAccount,account.getBalance());
+
+        log.info("EMI processed successfully for loan : {} installment : {} " ,
+                loanAccount.getLoanAccountNumber(),
+                emi.getInstallmentNumber());
+    }
+
+    private void processMissedEMI(EMISchedule emi, LoanAccount loanAccount, Account account){
+        BigDecimal penalty = emi.getEmiAmount().multiply(BigDecimal.valueOf(0.02));
+
+        emi.setStatus(EMIStatus.MISSED);
+        emi.setPenaltyAmount(penalty);
+        emiScheduleRepository.save(emi);
+
+        // Decrease score for missed EMI
+        trustScoreService.decreaseScore(
+                loanAccount.getUser().getId(),
+                Math.abs(SCORE_EMI_MISSED),
+                "EMI missed for loan : " + loanAccount.getLoanAccountNumber()
+        );
+
+        // send missed EMI notification
+        sendEMIMissedNotification(emi,loanAccount,penalty);
+
+        log.warn("EMI MISSED for loan : {} installment: {} | " +
+                "Insufficient balance : {} | required : {}",
+                loanAccount.getLoanAccountNumber(),
+                emi.getInstallmentNumber(),
+                account.getBalance(),
+                emi.getEmiAmount());
+    }
+
+    private void sendEMISuccessNotification(EMISchedule emi, LoanAccount loanAccount, BigDecimal remainingBalance){
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("emiAmount",emi.getEmiAmount());
+        data.put("installmentNumber", emi.getInstallmentNumber());
+        data.put("loanAccountNumber",loanAccount.getLoanAccountNumber());
+        data.put("outStandingPrincipal",loanAccount.getOutstandingPrincipal());
+        data.put("emisRemaining",loanAccount.getEmisRemaining());
+
+        eventPublisher.publishEvent(NotificationEvent.forUser(this,
+                NotificationEventType.EMI_DEDUCTED,
+                loanAccount.getUser().getFirstName() + " " + loanAccount.getUser().getLastName(),
+                loanAccount.getUser().getEmail(),
+                loanAccount.getUser().getPhoneNumber(),
+                data));
+    }
+
+    private void sendEMIMissedNotification(EMISchedule emi,
+                                           LoanAccount loanAccount,
+                                           BigDecimal penalty){
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("emiAmount", emi.getEmiAmount());
+        data.put("dueDate",emi.getDueDate());
+        data.put("penalty",penalty);
+        data.put("loanAccountNumber",loanAccount.getLoanAccountNumber());
+
+        eventPublisher.publishEvent(NotificationEvent.forUser(this,
+                NotificationEventType.EMI_MISSED,
+                loanAccount.getUser().getFirstName() + " " + loanAccount.getUser().getLastName(),
+                loanAccount.getUser().getEmail(),
+                loanAccount.getUser().getPhoneNumber(),
+                data));
+    }
+
+    private void sendLoanFullyRepaidNotification(LoanAccount loanAccount){
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("loanAccountNumber",loanAccount.getLoanAccountNumber());
+        data.put("loanType",loanAccount.getLoanType());
+        data.put("totalAmoutnPaid",loanAccount.getTotalAmountPaid());
+
+        eventPublisher.publishEvent(NotificationEvent.forUser(this,
+                NotificationEventType.LOAN_FULLY_REPAID,
+                loanAccount.getUser().getFirstName() + " " + loanAccount.getUser().getLastName(),
+                loanAccount.getUser().getEmail(),
+                loanAccount.getUser().getPhoneNumber(),
+                data));
+    }
+
+    private void sendEMIReminderNotification(EMISchedule emi){
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("emiAmount",emi.getEmiAmount());
+        data.put("dueDate",emi.getDueDate().toString());
+        data.put("loanAccountNumber",emi.getLoanAccount().getLoanAccountNumber());
+
+        eventPublisher.publishEvent(NotificationEvent.forUser(this,
+                NotificationEventType.EMI_DUE_REMINDER,
+                emi.getLoanAccount().getUser().getFirstName() + " " + emi.getLoanAccount().getUser().getLastName(),
+                emi.getLoanAccount().getUser().getEmail(),
+                emi.getLoanAccount().getUser().getPhoneNumber(),
+                data));
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

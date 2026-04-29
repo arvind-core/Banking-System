@@ -437,7 +437,10 @@ public class LoanServiceImplementation implements LoanService{
     }
 
     private String generateLoanAccountNumber() {
-        return "LA" + System.currentTimeMillis();
+        return "LA" + UUID.randomUUID().toString()
+                .replace("-", "")
+                .substring(0, 10)
+                .toUpperCase();
     }
 
     private LoanApplicationResponse mapToApplicationResponse(
