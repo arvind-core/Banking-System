@@ -1,11 +1,15 @@
 package com.BankingSystem.util;
 
+import com.BankingSystem.entity.bank.BankLedger;
 import com.BankingSystem.entity.bank.Branch;
+import com.BankingSystem.repo.BankLedgerRepository;
 import com.BankingSystem.repo.BranchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
 
 @Slf4j
 @Component
@@ -13,12 +17,17 @@ import org.springframework.stereotype.Component;
 public class DataSeeder implements CommandLineRunner {
 
     private final BranchRepository branchRepository;
+    private final BankLedgerRepository bankLedgerRepository;
 
     @Override
     public void run(String... args) {
         if (branchRepository.count() == 0) {
             seedBranches();
             log.info("Branch data seeded successfully.");
+        }
+        if (bankLedgerRepository.count() == 0) {
+            seedBankLedger();
+            log.info("Bank ledger initialized.");
         }
     }
 
@@ -67,4 +76,14 @@ public class DataSeeder implements CommandLineRunner {
                 .isActive(true)
                 .build());
     }
+    private void seedBankLedger() {
+        bankLedgerRepository.save(BankLedger.builder()
+                .totalCapital(new BigDecimal("100000000"))
+                .totalDeposits(BigDecimal.ZERO)
+                .totalLoanBook(BigDecimal.ZERO)
+                .totalCreditExposure(BigDecimal.ZERO)
+                .totalReserve(new BigDecimal("20000000"))
+                .build());
+    }
+
 }

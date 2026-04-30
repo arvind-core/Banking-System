@@ -86,15 +86,28 @@ public class BankConfig {
 
     // Bank Capital Configuration
 
-    private static final double MAX_LENDING_RATION = 0.80;
-    private static final double CREDIT_CARD_LATE_PENALTY_ANNUAL = 36.0;
-    private static final double CREDIT_CARD_LATE_PENALTY_MONTHLY = 3.0;
-    private static final int CREDIT_CARD_PAYMENT_DUE_DAYS = 15;
-    private static final int CREDIT_CARD_BILLING_CYCLE_DAY = 1;
-    private static final double CREDIT_CARD_MIN_DUE_PERCENTAGE = 5.0;
-    private static final double CREDIT_CARD_MIN_DUE_FLOOR = 500.0;
-    private static final double REWARD_POINTS_PER_100_SPENT = 1.0;
+    public static final double MAX_LENDING_RATION = 0.80;
+    public static final double CREDIT_CARD_LATE_PENALTY_ANNUAL = 36.0;
+    public static final double CREDIT_CARD_LATE_PENALTY_MONTHLY = 3.0;
+    public static final int CREDIT_CARD_PAYMENT_DUE_DAYS = 15;
+    public static final int CREDIT_CARD_BILLING_CYCLE_DAY = 1;
+    public static final double CREDIT_CARD_MIN_DUE_PERCENTAGE = 5.0;
+    public static final double CREDIT_CARD_MIN_DUE_FLOOR = 500.0;
+    public static final double REWARD_POINTS_PER_100_SPENT = 1.0;
 
 
+
+    // Credit Card Limits by CardType
+
+    public static final double CLASSIC_CARD_MAX_LIMIT = 100000.0;
+    public static final double GOLD_CARD_MAX_LIMIT = 300000.0;
+    public static final double PLATINUM_CARD_MAX_LIMIT = 500000.0;
+    public static final double SIGNATURE_CARD_MAX_LIMIT = 1000000.0;
+
+    // Credit Limit income multiplier
+    public static final double CREDIT_LIMIT_INCOME_MULTIPLIER = 2.5;
+
+    // Minimum trust score for credit card
+    public static final int MIN_TRUST_SCORE_FOR_CREDIT_CARD = 20;
 }
 

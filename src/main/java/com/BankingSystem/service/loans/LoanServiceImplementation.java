@@ -14,6 +14,7 @@ import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.*;
+import com.BankingSystem.service.bank.BankLedgerService;
 import com.BankingSystem.service.trust.TrustScoreService;
 import com.BankingSystem.util.EMICalculator;
 import com.BankingSystem.util.NotificationEvent;
@@ -49,6 +50,7 @@ public class LoanServiceImplementation implements LoanService{
     private final LoanAccountRepository loanAccountRepository;
     private final EMIScheduleRepository emiScheduleRepository;
     private final BranchRepository branchRepository;
+    private final BankLedgerService bankLedgerService;
 
     @Override
     @Transactional
@@ -216,6 +218,12 @@ public class LoanServiceImplementation implements LoanService{
                 .findByApplicationReference(applicationReference)
                 .orElseThrow( () -> new ResourceNotFoundException("Loan application not found : " + applicationReference));
 
+        if (!bankLedgerService.canLend(application.getRequestedAmount())) {
+            throw new InvalidOperationException(
+                    "Bank does not have sufficient lending capacity " +
+                            "to process this loan at this time.");
+        }
+
         if(application.getStatus() != LoanStatus.APPROVED){
             throw new InvalidOperationException("Only Approved applications can be disbursed");
         }
@@ -245,6 +253,8 @@ public class LoanServiceImplementation implements LoanService{
         disbursementAccount.setBalance(disbursementAccount.getBalance().add(application.getRequestedAmount()));
 
         accountRepository.save(disbursementAccount);
+
+        bankLedgerService.onLoanDisbursed(application.getRequestedAmount());
 
         application.setStatus(LoanStatus.DISBURSED);
         loanApplicationRepository.save(application);

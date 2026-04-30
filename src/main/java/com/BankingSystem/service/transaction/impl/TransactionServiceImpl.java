@@ -18,6 +18,7 @@ import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.TransactionRepository;
 import com.BankingSystem.repo.UserRepository;
+import com.BankingSystem.service.bank.BankLedgerService;
 import com.BankingSystem.service.transaction.TransactionService;
 import com.BankingSystem.util.NotificationEvent;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
+    private final BankLedgerService bankLedgerService;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
@@ -66,6 +68,8 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
+
+        bankLedgerService.onDeposit(request.getAmount());
 
         eventPublisher.publishEvent(
                 NotificationEvent.forTransaction(this, saved, account));
@@ -101,6 +105,8 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
+
+        bankLedgerService.onWithdrawal(request.getAmount());
 
         eventPublisher.publishEvent(
                 NotificationEvent.forTransaction(this, saved, account));
