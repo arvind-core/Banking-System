@@ -109,5 +109,18 @@ public class BankConfig {
 
     // Minimum trust score for credit card
     public static final int MIN_TRUST_SCORE_FOR_CREDIT_CARD = 20;
-}
 
+    // Credit card approval thresholds
+    public static final String AUTO_APPROVE_BELOW_TYPE = "PLATINUM";
+    public static final double LATE_PAYMENT_FEE = 500.0;
+    public static final int AUTO_BLOCK_AFTER_MISSED_PAYMENTS = 3;
+    public static final int CARD_EXPIRY_YEARS = 5;
+
+    // Reward points multiplier per category
+    public static final double REWARD_DINING = 5.0;
+    public static final double REWARD_TRAVEL = 5.0;
+    public static final double REWARD_FUEL = 2.0;
+    public static final double REWARD_GROCERY = 2.0;
+    public static final double REWARD_SHOPPING = 3.0;
+    public static final double REWARD_DEFAULT = 1.0;
+}

@@ -56,6 +56,9 @@ public class BillingCycle {
     @Column(nullable = false)
     private BigDecimal totalRewardPointsEarned;
 
+    @Column(nullable = false)
+    private Integer daysOverdue = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BillingStatus status;

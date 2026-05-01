@@ -78,6 +78,9 @@ public class CreditCard {
     private LocalDate paymentDueDate;
 
     @Column(nullable = false)
+    private Integer consecutiveMissedPayments = 0;
+
+    @Column(nullable = false)
     private boolean internationTransactionsEnabled;
 
     @Column(nullable = false)
