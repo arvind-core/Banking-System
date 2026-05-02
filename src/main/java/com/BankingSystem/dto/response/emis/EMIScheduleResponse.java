@@ -1,4 +1,4 @@
-package com.BankingSystem.dto.response;
+package com.BankingSystem.dto.response.emis;
 
 import com.BankingSystem.entity.loan.EMIStatus;
 import lombok.Builder;

@@ -2,8 +2,8 @@ package com.BankingSystem.service.loans;
 
 import com.BankingSystem.dto.request.LoanApplicationRequest;
 import com.BankingSystem.dto.request.LoanReviewRequest;
-import com.BankingSystem.dto.response.EMICalculationPreviewResponse;
-import com.BankingSystem.dto.response.EMIScheduleResponse;
+import com.BankingSystem.dto.response.emis.EMICalculationPreviewResponse;
+import com.BankingSystem.dto.response.emis.EMIScheduleResponse;
 import com.BankingSystem.dto.response.LoanAccountResponse;
 import com.BankingSystem.dto.response.LoanApplicationResponse;
 import java.math.BigDecimal;

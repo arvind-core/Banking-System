@@ -2,15 +2,13 @@ package com.BankingSystem.Controller;
 
 import com.BankingSystem.dto.request.LoanApplicationRequest;
 import com.BankingSystem.dto.request.LoanReviewRequest;
-import com.BankingSystem.dto.response.EMICalculationPreviewResponse;
-import com.BankingSystem.dto.response.EMIScheduleResponse;
+import com.BankingSystem.dto.response.emis.EMICalculationPreviewResponse;
+import com.BankingSystem.dto.response.emis.EMIScheduleResponse;
 import com.BankingSystem.dto.response.LoanAccountResponse;
 import com.BankingSystem.dto.response.LoanApplicationResponse;
-import com.BankingSystem.repo.LoanApplicationRepository;
 import com.BankingSystem.service.loans.LoanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

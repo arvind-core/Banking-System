@@ -1,6 +1,6 @@
 package com.BankingSystem.util;
 
-import com.BankingSystem.dto.response.EMIScheduleResponse;
+import com.BankingSystem.dto.response.emis.EMIScheduleResponse;
 import com.BankingSystem.entity.loan.EMIStatus;
 import com.BankingSystem.entity.loan.InterestMethod;
 import java.math.BigDecimal;
