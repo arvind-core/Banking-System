@@ -15,6 +15,7 @@ public class BillingCycleResponse {
     private Long id;
     private LocalDate cycleStartDate;
     private LocalDate cycleEndDate;
+    private LocalDate paymentDueDate;
     private BigDecimal totalSpend;
     private BigDecimal minimumDue;
     private BigDecimal openingOutstanding;

@@ -16,7 +16,7 @@ public class CreditCardResponse {
     private String maskedCardNumber;
     private String cardHolderName;
     private CardType cardType;
-    private CardStatus cardStatus;
+    private CardStatus status;
     private BigDecimal creditLimit;
     private BigDecimal availableLimit;
     private BigDecimal outstandingAmount;

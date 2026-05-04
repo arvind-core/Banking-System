@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -48,7 +47,7 @@ public class CreditCard {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CardStatus cardStatus;
+    private CardStatus status;
 
     @Column(nullable = false)
     private BigDecimal creditLimit;
@@ -81,7 +80,7 @@ public class CreditCard {
     private Integer consecutiveMissedPayments = 0;
 
     @Column(nullable = false)
-    private boolean internationTransactionsEnabled;
+    private boolean internationalTransactionsEnabled;
 
     @Column(nullable = false)
     private boolean onlineTransactionsEnabled;

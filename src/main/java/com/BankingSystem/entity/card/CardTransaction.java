@@ -35,7 +35,7 @@ public class CardTransaction {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private BigDecimal merchantName;
+    private String merchantName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

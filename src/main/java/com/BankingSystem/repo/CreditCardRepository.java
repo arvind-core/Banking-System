@@ -22,7 +22,7 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
 
     List<CreditCard> findByUserAndStatus(User user, CardStatus status);
 
-    boolean existByUserAndCardType(User user, CardType cardType);
+    boolean existsByUserAndCardType(User user, CardType cardType);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM CreditCard c WHERE c.cardNumber = :cardNumber")

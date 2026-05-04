@@ -23,7 +23,7 @@ public class BillingCycle {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "credit_card_id",nullable = false)
+    @JoinColumn(name = "credit_card_id", nullable = false)
     private CreditCard creditCard;
 
     @Column(nullable = false)
@@ -54,6 +54,9 @@ public class BillingCycle {
     private BigDecimal interestCharged;
 
     @Column(nullable = false)
+    private BigDecimal latePaymentFee = BigDecimal.ZERO;
+
+    @Column(nullable = false)
     private BigDecimal totalRewardPointsEarned;
 
     @Column(nullable = false)
@@ -70,32 +73,13 @@ public class BillingCycle {
     private LocalDateTime updatedAt;
 
     @PrePersist
-    protected void  onCreate(){
+    protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    protected void  onUpdate(){
+    protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
