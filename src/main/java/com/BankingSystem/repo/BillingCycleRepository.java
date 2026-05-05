@@ -18,7 +18,7 @@ public interface BillingCycleRepository extends JpaRepository<BillingCycle, Long
     Optional<BillingCycle> findByCreditCardAndStatus(CreditCard creditCard, BillingStatus status);
 
     @Query("SELECT b FROM BillingCycle b WHERE b.status = 'OPEN'")
-    List<BillingCycle> findAllOpenCycle();
+    List<BillingCycle> findAllOpenCycles();
 
     @Query("SELECT b FROM BillingCycle b WHERE b.paymentDueDate < :today AND b.status IN ('GENERATED' , 'PARTIALLY_PAID')")
     List<BillingCycle> findOverdueCycles(@Param("today") LocalDate today);

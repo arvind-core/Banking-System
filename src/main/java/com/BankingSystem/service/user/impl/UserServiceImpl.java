@@ -15,6 +15,7 @@ import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final TrustScoreService trustScoreService;
 
     @Override
+    @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {

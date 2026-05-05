@@ -208,7 +208,7 @@ public class CreditCardServiceImplementation implements CreditCardService {
     @Override
     @Transactional
     public CardTransactionResponse processTransaction(CardTransactionRequest request) {
-        CreditCard card = creditCardRepository.findByCardNumber(request.getCardNumber()).orElseThrow(() -> new ResourceNotFoundException("Credit Card not found : " + request.getCardNumber()));
+        CreditCard card = creditCardRepository.findByCardNumberWithLock(request.getCardNumber()).orElseThrow(() -> new ResourceNotFoundException("Credit Card not found : " + request.getCardNumber()));
 
         if (card.getStatus() != CardStatus.ACTIVE) {
             throw new InvalidOperationException("Card is not in ACTIVE state, Current state : " + card.getStatus());
