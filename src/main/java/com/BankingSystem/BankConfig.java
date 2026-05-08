@@ -123,4 +123,7 @@ public class BankConfig {
     public static final double REWARD_GROCERY = 2.0;
     public static final double REWARD_SHOPPING = 3.0;
     public static final double REWARD_DEFAULT = 1.0;
+
+    // Money requests
+    public static final long AUTO_EXPIRE_MONEY_REQUEST_HOURS = 24;
 }
