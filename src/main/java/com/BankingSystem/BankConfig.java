@@ -126,4 +126,9 @@ public class BankConfig {
 
     // Money requests
     public static final long AUTO_EXPIRE_MONEY_REQUEST_HOURS = 24;
+
+    // EMI retry configuration
+    public static final int EMI_MAX_RETRY_ATTEMPTS = 3;
+    public static final int EMI_GRACE_PERIOD_DAYS = 3;
+    public static final double EMI_PENALTY_PERCENTAGE = 2.0;
 }
