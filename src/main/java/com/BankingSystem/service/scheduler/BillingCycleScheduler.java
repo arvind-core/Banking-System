@@ -31,7 +31,7 @@ import static com.BankingSystem.BankConfig.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BillingCycleScheduler {
+public class BillingCycleScheduler implements BillingCycleSchedulerService{
     private final BillingCycleRepository billingCycleRepository;
     private final CreditCardRepository creditCardRepository;
     private final TrustScoreService trustScoreService;
