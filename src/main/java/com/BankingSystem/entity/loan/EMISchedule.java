@@ -59,6 +59,12 @@ public class EMISchedule {
     @Column
     private BigDecimal penaltyAmount;
 
+    @Column(nullable = false)
+    private Integer retryCount = 0;
+
+    @Column
+    private LocalDate lastRetryDate;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
