@@ -1,11 +1,11 @@
 package com.BankingSystem.service.branchTransfer;
 
+import com.BankingSystem.dto.request.branchTransfer.BranchTransferCreate;
 import com.BankingSystem.dto.request.branchTransfer.BranchTransferReviewRequest;
 import com.BankingSystem.dto.response.branchTransfer.BranchTransferResponse;
 import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.bank.Branch;
 import com.BankingSystem.entity.bank.BranchTransferRequest;
-import com.BankingSystem.entity.bank.BranchTransferStatus;
 import com.BankingSystem.entity.loan.LoanAccount;
 import com.BankingSystem.entity.loan.LoanStatus;
 import com.BankingSystem.entity.users.User;
@@ -44,11 +44,11 @@ public class BranchTransferServiceImpl implements BranchTransferService {
 
     @Override
     @Transactional
-    public BranchTransferResponse requestTransfer(BranchTransferRequest request, Long userId) {
+    public BranchTransferResponse requestTransfer(BranchTransferCreate request, Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User Not found : " + userId));
 
-        Account account = accountRepository.findByAccountNumberAndIsActiveTrue(request.getAccount().getAccountNumber()).orElseThrow(() -> new ResourceNotFoundException("Account Not found : " + request.getAccount().getAccountNumber()));
+        Account account = accountRepository.findByAccountNumberAndIsActiveTrue(request.getAccountNumber()).orElseThrow(() -> new ResourceNotFoundException("Account Not found : " + request.getAccountNumber()));
 
         // Verify account belongs to user
         if(!account.getUser().getId().equals(userId)) {
@@ -56,12 +56,12 @@ public class BranchTransferServiceImpl implements BranchTransferService {
         }
 
         // Check no active transfer already pending
-        if(transferRepository.hasActivePendingTransfer(request.getAccount().getAccountNumber())) {
+        if(transferRepository.hasActivePendingTransfer(request.getAccountNumber())) {
             throw new InvalidOperationException("Account already has a pending branch transfer request.");
         }
 
         Branch currentBranch = account.getBranch();
-        Branch reqeustedBranch = branchRepository.findByBranchCode(request.getRequestedBranch().getBranchCode()).orElseThrow(() -> new ResourceNotFoundException("Branch Not found : " + request.getRequestedBranch().getBranchCode()));
+        Branch reqeustedBranch = branchRepository.findByBranchCode(request.getRequestedBranchCode()).orElseThrow(() -> new ResourceNotFoundException("Branch Not found : " + request.getRequestedBranchCode()));
 
         if(!reqeustedBranch.isActive()){
             throw new InvalidOperationException("Requested Branch is currently inactive.");
