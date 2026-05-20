@@ -1,6 +1,7 @@
 package com.BankingSystem.repo;
 
 import com.BankingSystem.entity.account.AccountType;
+import com.BankingSystem.entity.bank.Branch;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +10,8 @@ import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.users.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +33,13 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<Account> findAllByIsActiveTrue(AccountType accountType);
 
     List<Account> findAllByAccountTypeAndIsActiveTrue(AccountType accountType);
+
+    List<Account> findByBranch(Branch branch);
+
+    List<Account> findByBranchAndIsActiveTrue(Branch branch);
+
+    @Query("SELECT COALESCE(SUM(a.balance),0) FROM Account a WHERE a.branch = :branch AND a.isActive = true")
+    BigDecimal sumBalancesByBranch(@Param("branch") Branch branch);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Account a WHERE a.accountNumber = :accountNumber AND a.isActive = true")

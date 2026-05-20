@@ -1,5 +1,6 @@
 package com.BankingSystem.repo;
 
+import com.BankingSystem.entity.bank.Branch;
 import com.BankingSystem.entity.card.CardStatus;
 import com.BankingSystem.entity.card.CardType;
 import com.BankingSystem.entity.card.CreditCard;
@@ -23,6 +24,14 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
     List<CreditCard> findByUserAndStatus(User user, CardStatus status);
 
     boolean existsByUserAndCardType(User user, CardType cardType);
+
+    List<CreditCard> findByUserIn(List<User> users);
+
+    @Query("SELECT c FROM CreditCard c WHERE c.user.id IN (SELECT a.user.id FROM Account a WHERE a.branch = :branch) AND c.status = 'PENDING_APPROVAL'")
+    List<CreditCard> findPendingApprovalByBranch(@Param("branch") Branch branch);
+
+    @Query("SELECT COUNT(c) FROM CreditCard C WHERE c.user.id IN (SELECT a.user.id FROM Account a WHERE a.branch = :branch) AND c.status = 'ACTIVE'")
+    long countActiveCardsByBranch(@Param("branch") Branch branch);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM CreditCard c WHERE c.cardNumber = :cardNumber")
