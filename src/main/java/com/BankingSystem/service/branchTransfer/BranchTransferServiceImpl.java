@@ -90,7 +90,7 @@ public class BranchTransferServiceImpl implements BranchTransferService {
         data.put("requestedBranch", reqeustedBranch.getBranchName());
 
         eventPublisher.publishEvent(NotificationEvent.forUser(this,
-                NotificationEventType.LOGIN_SUCCESSFUL,
+                NotificationEventType.BRANCH_TRANSFER_REQUESTED,
                 user.getFirstName() + "  " + user.getLastName(),
                 user.getEmail(),
                 user.getPhoneNumber(),
@@ -243,7 +243,7 @@ public class BranchTransferServiceImpl implements BranchTransferService {
         data.put("accouNtNumber", account.getAccountNumber());
 
         eventPublisher.publishEvent(NotificationEvent.forUser(this,
-                NotificationEventType.PRIMARY_ACCOUNT_UPDATED,
+                NotificationEventType.BRANCH_TRANSFER_COMPLETED,
                 account.getUser().getFirstName() + " " + account.getUser().getLastName(),
                 account.getUser().getEmail(),
                 account.getUser().getPhoneNumber(),
@@ -258,7 +258,7 @@ public class BranchTransferServiceImpl implements BranchTransferService {
         data.put("requestedBranch", transferRequest.getRequestedBranch());
 
         eventPublisher.publishEvent(NotificationEvent.forUser(this,
-                NotificationEventType.LOAN_REJECTED,
+                NotificationEventType.BRANCH_TRANSFER_REJECTED,
                 transferRequest.getUser().getFirstName() + " " + transferRequest.getUser().getLastName(),
                 transferRequest.getUser().getEmail(),
                 transferRequest.getUser().getPhoneNumber(),

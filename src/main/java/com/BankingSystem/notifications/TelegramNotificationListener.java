@@ -1,5 +1,6 @@
 package com.BankingSystem.notifications;
 
+import com.BankingSystem.BankConfig;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
@@ -120,6 +121,22 @@ public class TelegramNotificationListener {
                     event.getStringData("emiAmount"),
                     event.getStringData("dueDate"),
                     event.getStringData("penalty"));
+            case INTEREST_CREDITED -> String.format(
+                    "Dear %s, ₹%s has been credited as monthly interest to account %s " +
+                            "for %s at %.2f%% annual rate. New balance: ₹%s.",
+                    event.getRecipientName(),
+                    event.getStringData("interestAmount"),
+                    event.getStringData("accountNumber"),
+                    event.getStringData("period"),
+                    BankConfig.SAVINGS_ACCOUNT_INTEREST_RATE,
+                    event.getStringData("newBalance"));
+            case BRANCH_TRANSFER_COMPLETED -> String.format(
+                    "Dear %s, your account %s has been successfully transferred to %s. " +
+                            "Your new IFSC code is %s.",
+                    event.getRecipientName(),
+                    event.getStringData("accountNumber"),
+                    event.getStringData("newBranch"),
+                    event.getStringData("newIfscCode"));
             default -> String.format(
                     "🏦 " + BANK_NAME + " Alert*%n" +
                             "👤 %s%n" +

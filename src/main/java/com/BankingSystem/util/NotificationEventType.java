@@ -2,6 +2,8 @@ package com.BankingSystem.util;
 
 public enum NotificationEventType {
 
+    INTEREST_CREDITED,
+
     // Account events
     ACCOUNT_CREATED,
     ACCOUNT_CLOSED,
@@ -44,5 +46,11 @@ public enum NotificationEventType {
     MONEY_REQUEST_RECEIVED,
     MONEY_REQUEST_ACCEPTED,
     MONEY_REQUEST_REJECTED,
-    MONEY_REQUEST_EXPIRED
+    MONEY_REQUEST_EXPIRED,
+
+    // Branch Transfer
+    BRANCH_TRANSFER_REQUESTED,
+    BRANCH_TRANSFER_APPROVED,
+    BRANCH_TRANSFER_REJECTED,
+    BRANCH_TRANSFER_COMPLETED
 }

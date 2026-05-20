@@ -17,7 +17,7 @@ public interface DailyBalanceSnapshotRepository extends JpaRepository<DailyBalan
 
     Optional<DailyBalanceSnapshot> findByAccountAndSnapshotDate(Account account, Date snapshotDate);
 
-    boolean existsByAccountAndSnapshotDate(Account account, Date snapshotDate);
+    boolean existsByAccountAndSnapshotDate(Account account, LocalDate snapshotDate);
 
     // Sum all daily balances for an account within a date range
     // This is the core of the daily product method

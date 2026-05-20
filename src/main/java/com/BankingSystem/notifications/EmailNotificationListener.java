@@ -1,5 +1,6 @@
 package com.BankingSystem.notifications;
 
+import com.BankingSystem.BankConfig;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
@@ -77,6 +78,11 @@ public class EmailNotificationListener {
             case MONEY_REQUEST_ACCEPTED -> "Money Request Accepted";
             case MONEY_REQUEST_REJECTED -> "Money Request Rejected";
             case MONEY_REQUEST_EXPIRED -> "Money Request Expired";
+            case INTEREST_CREDITED -> "Monthly Interest Credited to Your Account";
+            case BRANCH_TRANSFER_REQUESTED -> "Branch Transfer Request Submitted";
+            case BRANCH_TRANSFER_APPROVED -> "Branch Transfer Approved";
+            case BRANCH_TRANSFER_REJECTED -> "Branch Transfer Request Rejected";
+            case BRANCH_TRANSFER_COMPLETED -> "Branch Transfer Completed Successfully";
         };
     }
 
@@ -143,6 +149,21 @@ public class EmailNotificationListener {
                     event.getStringData("emiAmount"),
                     event.getStringData("dueDate"),
                     event.getStringData("penalty"));
+            case INTEREST_CREDITED -> String.format(
+                    "Dear %s, ₹%s has been credited as monthly interest to account %s " +
+                            "for %s at %.2f%% annual rate. New balance: ₹%s.",
+                    event.getRecipientName(),
+                    event.getStringData("interestAmount"),
+                    event.getStringData("accountNumber"),
+                    event.getStringData("period"), BankConfig.SAVINGS_ACCOUNT_INTEREST_RATE,
+                    event.getStringData("newBalance"));
+            case BRANCH_TRANSFER_COMPLETED -> String.format(
+                    "Dear %s, your account %s has been successfully transferred to %s. " +
+                            "Your new IFSC code is %s.",
+                    event.getRecipientName(),
+                    event.getStringData("accountNumber"),
+                    event.getStringData("newBranch"),
+                    event.getStringData("newIfscCode"));
             default -> String.format(
                     "Dear %s, %s. Please contact support if you have any questions.",
                     event.getRecipientName(),

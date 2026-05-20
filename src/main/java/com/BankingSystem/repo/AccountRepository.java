@@ -1,5 +1,6 @@
 package com.BankingSystem.repo;
 
+import com.BankingSystem.entity.account.AccountType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +24,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<Account> findByUserAndIsActiveTrue(User user);
 
     Optional<Account> findByAccountNumberAndIsActiveTrue(String accountNumber);
+
+    List<Account> findAllByIsActiveTrue();
+
+    List<Account> findAllByIsActiveTrue(AccountType accountType);
+
+    List<Account> findAllByAccountTypeAndIsActiveTrue(AccountType accountType);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Account a WHERE a.accountNumber = :accountNumber AND a.isActive = true")

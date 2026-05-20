@@ -131,4 +131,6 @@ public class BankConfig {
     public static final int EMI_MAX_RETRY_ATTEMPTS = 3;
     public static final int EMI_GRACE_PERIOD_DAYS = 3;
     public static final double EMI_PENALTY_PERCENTAGE = 2.0;
+
+    public static final double MIN_INTEREST_CREDIT_AMOUNT = 1.0;
 }
