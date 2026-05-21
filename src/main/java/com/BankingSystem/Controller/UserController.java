@@ -33,4 +33,10 @@ public class UserController {
         UserResponse response = userService.getUserByEmail(email);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{userId}/telegram-chat-id")
+    public ResponseEntity<String> updateTelegramChatId(@PathVariable Long userId, @RequestParam String chatId) {
+        userService.updateTelegramChatId(userId, chatId);
+        return ResponseEntity.ok("Telegram notifications enabled.");
+    }
 }

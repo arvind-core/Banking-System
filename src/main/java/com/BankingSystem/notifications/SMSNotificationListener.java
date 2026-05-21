@@ -4,8 +4,11 @@ import com.BankingSystem.BankConfig;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -20,6 +23,9 @@ public class SMSNotificationListener {
     private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final UserRepository userRepository;
 
+    @Value("${twilio.phone.number}")
+    private String fromPhoneNumber;
+
     @Async
     @EventListener
     public void handleNotification(NotificationEvent event) {
@@ -32,15 +38,30 @@ public class SMSNotificationListener {
                             .orElse(null))
                             .ifPresent(pref -> {
                                 if (pref.isSmsEnabled()) {
-                                    String message = buildSMSMessage(event);
-                                    log.info("SMS → TO: {} | MESSAGE: {}",
-                                            event.getRecipientPhone(), message);
+                                    sendSMS(event);
                                 }
                             });
 
         } catch (Exception e) {
             log.error("Failed to send SMS for event: {} | Error: {}",
                     event.getEventType(), e.getMessage());
+        }
+    }
+
+    private void sendSMS(NotificationEvent event) {
+        try {
+            String messagebody = buildSMSMessage(event);
+            String toNumber = "+91" + event.getRecipientPhone();
+
+            Message.creator(new PhoneNumber(toNumber),
+                    new PhoneNumber(fromPhoneNumber),
+                    messagebody
+            ).create();
+
+            log.info("SMS sent to : {} for event: {}", event.getRecipientPhone(), event.getEventType());
+        }
+        catch (Exception e) {
+            log.error("Twilio SMS failed to : {} | Error : {}", event.getRecipientPhone(), e.getMessage());
         }
     }
 

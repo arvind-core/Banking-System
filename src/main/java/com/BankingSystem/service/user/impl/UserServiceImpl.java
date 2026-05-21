@@ -13,12 +13,14 @@ import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.trust.TrustScoreService;
 import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -81,6 +83,21 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         return mapToUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void updateTelegramChatId(Long userId, String chatId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        notificationPreferenceRepository.findByUser(user).ifPresent(pref -> {
+            pref.setTelegramChatId(chatId);
+            pref.setTelegramEnabled(true);
+            notificationPreferenceRepository.save(pref);
+        });
+
+        log.info("Telegram chat Id updated for user {}", userId);
+
     }
 
     private UserResponse mapToUserResponse(User user) {

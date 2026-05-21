@@ -1,12 +1,13 @@
 package com.BankingSystem.notifications;
-
-import com.BankingSystem.BankConfig;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.util.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -17,30 +18,46 @@ import static com.BankingSystem.BankConfig.BANK_NAME;
 @RequiredArgsConstructor
 public class EmailNotificationListener {
 
+    private final JavaMailSender mailSender;
     private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final UserRepository userRepository;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     @Async
     @EventListener
     public void handleNotification(NotificationEvent event) {
         try {
-            // Check if user has email enabled
-            notificationPreferenceRepository
-                    .findByUser(userRepository
-                            .findByEmailAndIsActiveTrue(event.getRecipientEmail())
-                            .orElse(null))
-                            .ifPresent(pref -> {
-                                if (pref.isEmailEnabled()) {
-                                String subject = buildSubject(event);
-                                String body = buildBody(event);
-                                // TODO: Replace with real JavaMailSender
-                                log.info("EMAIL → TO: {} | SUBJECT: {} | BODY: {}",
-                                    event.getRecipientEmail(), subject, body);
-                            }
-                    });
+            userRepository.findByEmailAndIsActiveTrue(event.getRecipientEmail()).ifPresent(user -> {
+                notificationPreferenceRepository.findByUser(user).ifPresent(pref -> {
+                    if(pref.isEmailEnabled()){
+                        sendEmail(event);
+                    }
+                });
+            });
         } catch (Exception e) {
-            log.error("Failed to send email for event: {} | Error: {}",
-                    event.getEventType(), e.getMessage());
+            log.error("Failed to send email for event: {} to : {} | Error: {}",
+                    event.getEventType(),event.getRecipientEmail(), e.getMessage());
+        }
+    }
+
+    private void sendEmail(NotificationEvent event) {
+        try{
+            var message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(event.getRecipientEmail());
+            helper.setSubject(buildSubject(event));
+            helper.setText(buildBody(event), true);
+
+            mailSender.send(message);
+
+            log.info("Email sent to : {} | Subject : {}", event.getRecipientEmail(), buildSubject(event));
+        }
+        catch (Exception e){
+            log.error("Failed to send email to :{} | Error : {}", event.getRecipientEmail(), e.getMessage());
         }
     }
 
@@ -87,87 +104,71 @@ public class EmailNotificationListener {
     }
 
     private String buildBody(NotificationEvent event) {
-        return switch (event.getEventType()) {
+        String name = event.getRecipientName();
+        // HTML email body
+        String content = switch (event.getEventType()) {
             case DEPOSIT -> String.format(
-                    "Dear %s, ₹%s has been deposited to account %s. " +
-                            "Available balance: ₹%s. Reference: %s.",
-                    event.getRecipientName(),
+                    "Dear %s,<br><br>" +
+                            "<b>₹%s</b> has been credited to your account <b>%s</b>.<br>" +
+                            "Available balance: <b>₹%s</b><br>" +
+                            "Reference: %s<br><br>" +
+                            "Thank you for banking with us.",
+                    name,
                     event.getStringData("amount"),
                     event.getStringData("accountNumber"),
                     event.getStringData("balance"),
                     event.getStringData("transactionReference"));
             case WITHDRAWAL -> String.format(
-                    "Dear %s, ₹%s has been withdrawn from account %s. " +
-                            "Available balance: ₹%s. Reference: %s.",
-                    event.getRecipientName(),
+                    "Dear %s,<br><br>" +
+                            "<b>₹%s</b> has been debited from your account <b>%s</b>.<br>" +
+                            "Available balance: <b>₹%s</b><br>" +
+                            "Reference: %s",
+                    name,
                     event.getStringData("amount"),
                     event.getStringData("accountNumber"),
                     event.getStringData("balance"),
                     event.getStringData("transactionReference"));
-            case TRANSFER_SENT -> String.format(
-                    "Dear %s, ₹%s has been sent from account %s to account %s. " +
-                            "Available balance: ₹%s. Reference: %s.",
-                    event.getRecipientName(),
-                    event.getStringData("amount"),
-                    event.getStringData("accountNumber"),
-                    event.getStringData("targetAccountNumber"),
-                    event.getStringData("balance"),
-                    event.getStringData("transactionReference"));
-            case TRANSFER_RECEIVED -> String.format(
-                    "Dear %s, ₹%s has been received in account %s from account %s. " +
-                            "Available balance: ₹%s. Reference: %s.",
-                    event.getRecipientName(),
-                    event.getStringData("amount"),
-                    event.getStringData("accountNumber"),
-                    event.getStringData("targetAccountNumber"),
-                    event.getStringData("balance"),
-                    event.getStringData("transactionReference"));
-            case ACCOUNT_CREATED -> String.format(
-                    "Dear %s, your account %s has been created successfully. " +
-                            "Account type: %s. Branch: %s. Welcome to NexaBank!",
-                    event.getRecipientName(),
-                    event.getStringData("accountNumber"),
-                    event.getStringData("accountType"),
-                    event.getStringData("branchName"));
             case LOAN_APPROVED -> String.format(
-                    "Dear %s, your loan of ₹%s has been approved. " +
-                            "EMI: ₹%s per month for %s months. Disbursement in progress.",
-                    event.getRecipientName(),
-                    event.getStringData("loanAmount"),
-                    event.getStringData("emiAmount"),
-                    event.getStringData("tenure"));
-            case EMI_DUE_REMINDER -> String.format(
-                    "Dear %s, your EMI of ₹%s is due on %s. " +
-                            "Please ensure sufficient balance in your account.",
-                    event.getRecipientName(),
-                    event.getStringData("emiAmount"),
-                    event.getStringData("dueDate"));
+                    "Dear %s,<br><br>" +
+                            "Congratulations! Your loan application has been <b>approved</b>.<br>" +
+                            "Loan Amount: <b>₹%s</b><br>" +
+                            "Please wait for disbursement confirmation.",
+                    name,
+                    event.getStringData("requestedAmount"));
             case EMI_MISSED -> String.format(
-                    "Dear %s, your EMI of ₹%s due on %s was missed. " +
-                            "A penalty of ₹%s has been applied. Please pay immediately.",
-                    event.getRecipientName(),
+                    "Dear %s,<br><br>" +
+                            "Your EMI of <b>₹%s</b> due on <b>%s</b> could not be processed.<br>" +
+                            "Attempts remaining: <b>%s</b><br>" +
+                            "A penalty of <b>₹%s</b> may be applied if payment is not made.<br><br>" +
+                            "Please ensure sufficient balance in your account.",
+                    name,
                     event.getStringData("emiAmount"),
                     event.getStringData("dueDate"),
+                    event.getStringData("retriesRemaining"),
                     event.getStringData("penalty"));
             case INTEREST_CREDITED -> String.format(
-                    "Dear %s, ₹%s has been credited as monthly interest to account %s " +
-                            "for %s at %.2f%% annual rate. New balance: ₹%s.",
-                    event.getRecipientName(),
+                    "Dear %s,<br><br>" +
+                            "Monthly interest of <b>₹%s</b> has been credited to your account <b>%s</b>.<br>" +
+                            "Period: <b>%s</b><br>" +
+                            "New Balance: <b>₹%s</b>",
+                    name,
                     event.getStringData("interestAmount"),
                     event.getStringData("accountNumber"),
-                    event.getStringData("period"), BankConfig.SAVINGS_ACCOUNT_INTEREST_RATE,
+                    event.getStringData("period"),
                     event.getStringData("newBalance"));
-            case BRANCH_TRANSFER_COMPLETED -> String.format(
-                    "Dear %s, your account %s has been successfully transferred to %s. " +
-                            "Your new IFSC code is %s.",
-                    event.getRecipientName(),
-                    event.getStringData("accountNumber"),
-                    event.getStringData("newBranch"),
-                    event.getStringData("newIfscCode"));
             default -> String.format(
-                    "Dear %s, %s. Please contact support if you have any questions.",
-                    event.getRecipientName(),
-                    event.getEventType().toString().replace("_", " ").toLowerCase());
+                    "Dear %s,<br><br>%s<br><br>" +
+                            "For any queries contact us at %s.",
+                    name,
+                    event.getEventType().toString()
+                            .replace("_", " ").toLowerCase(),
+                    com.BankingSystem.BankConfig.BANK_SUPPORT_EMAIL);
         };
+
+        return "<html><body style='font-family:Arial,sans-serif;'>" +
+                content +
+                "<br><br><hr><small>This is an automated message from " +
+                com.BankingSystem.BankConfig.BANK_NAME +
+                ". Please do not reply.</small></body></html>";
     }
 }

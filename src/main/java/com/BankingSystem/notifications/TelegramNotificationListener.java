@@ -8,9 +8,17 @@ import static com.BankingSystem.BankConfig.BANK_NAME;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -19,6 +27,10 @@ public class TelegramNotificationListener {
 
     private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${telegram.bot.token}")
+    private String botToken;
 
     @Async
     @EventListener
@@ -29,18 +41,37 @@ public class TelegramNotificationListener {
                             .findByPhoneNumberAndIsActiveTrue(event.getRecipientPhone())
                             .orElse(null))
                             .ifPresent(pref -> {
-                                if(pref.isTelegramEnabled()){
-                                    String message = buildTelegramMessage(event);
+                                if(pref.isTelegramEnabled() && pref.getTelegramChatId() != null && !pref.getTelegramChatId().isBlank()){
 
-                                    // TODO: Replace with real Telegram Bot API implementation
-                                    log.info("TELEGRAM → TO: {} | MESSAGE: {}",
-                                            event.getRecipientPhone(), message);
+                                    sendTelegramMessage(pref.getTelegramChatId(), buildTelegramMessage(event));
                                 }
                             });
 
         } catch (Exception e) {
             log.error("Failed to send Telegram notification for event: {} | Error: {}",
                     event.getEventType(), e.getMessage());
+        }
+    }
+
+    private void sendTelegramMessage(String chatId, String message) {
+        try {
+            String url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, String> body = new HashMap<>();
+            body.put("chat_id", chatId);
+            body.put("text", message);
+            body.put("parse_mode", "markdown");
+
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+            restTemplate.postForObject(url, request, String.class);
+
+            log.info("Telegram message sent to chat : {}", chatId);
+        }
+        catch (Exception e) {
+            log.error("Telegram API call failed for chat : {} | Error : {}", chatId, e.getMessage());
         }
     }
 
