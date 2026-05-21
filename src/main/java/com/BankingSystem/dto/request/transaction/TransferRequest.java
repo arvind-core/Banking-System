@@ -18,6 +18,8 @@ public class TransferRequest {
     @NotNull(message = "Transfer type is required")
     private TransferType transferType;
 
+    private String otp; // required only for transfers above OTP threshold
+
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "1.0", message = "Transfer amount must be at least 1")
     private BigDecimal amount;

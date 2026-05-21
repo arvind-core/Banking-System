@@ -1,4 +1,4 @@
-package com.BankingSystem.service.savings_account_interest;
+package com.BankingSystem.service.schedulers.savings_account_interest;
 
 import com.BankingSystem.BankConfig;
 import com.BankingSystem.entity.account.Account;
@@ -11,8 +11,8 @@ import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.DailyBalanceSnapshotRepository;
 import com.BankingSystem.repo.TransactionRepository;
 import com.BankingSystem.service.bank.BankLedgerService;
-import com.BankingSystem.util.NotificationEvent;
-import com.BankingSystem.util.NotificationEventType;
+import com.BankingSystem.util.notifications.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

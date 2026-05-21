@@ -3,7 +3,7 @@ package com.BankingSystem.notifications;
 import com.BankingSystem.BankConfig;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
-import com.BankingSystem.util.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEvent;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import lombok.RequiredArgsConstructor;

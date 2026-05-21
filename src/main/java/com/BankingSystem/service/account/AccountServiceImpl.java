@@ -1,4 +1,4 @@
-package com.BankingSystem.service.user.impl;
+package com.BankingSystem.service.account;
 
 import com.BankingSystem.dto.request.CreateAccountRequest;
 import com.BankingSystem.dto.response.AccountResponse;
@@ -9,9 +9,8 @@ import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.BranchRepository;
 import com.BankingSystem.repo.UserRepository;
-import com.BankingSystem.service.user.AccountService;
-import com.BankingSystem.util.NotificationEvent;
-import com.BankingSystem.util.NotificationEventType;
+import com.BankingSystem.util.notifications.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

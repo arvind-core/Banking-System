@@ -1,4 +1,4 @@
-package com.BankingSystem.service.savings_account_interest;
+package com.BankingSystem.service.schedulers.savings_account_interest;
 
 public interface SavingsInterestService {
 

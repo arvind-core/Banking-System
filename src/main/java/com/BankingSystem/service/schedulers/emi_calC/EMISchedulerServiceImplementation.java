@@ -1,4 +1,4 @@
-package com.BankingSystem.util;
+package com.BankingSystem.service.schedulers.emi_calC;
 
 import com.BankingSystem.BankConfig;
 import com.BankingSystem.entity.account.Account;
@@ -14,6 +14,8 @@ import com.BankingSystem.repo.EMIScheduleRepository;
 import com.BankingSystem.repo.LoanAccountRepository;
 import com.BankingSystem.repo.TransactionRepository;
 import com.BankingSystem.service.trust.TrustScoreService;
+import com.BankingSystem.util.notifications.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,7 +37,7 @@ import static com.BankingSystem.BankConfig.*;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EMISchedulerServiceImplementation implements EMISchedulerService{
+public class EMISchedulerServiceImplementation implements EMISchedulerService {
 
     private final EMIScheduleRepository emiScheduleRepository;
     private final LoanAccountRepository loanAccountRepository;

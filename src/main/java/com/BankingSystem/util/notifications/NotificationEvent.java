@@ -1,4 +1,4 @@
-package com.BankingSystem.util;
+package com.BankingSystem.util.notifications;
 
 import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.transactions.Transaction;
@@ -49,6 +49,7 @@ public class NotificationEvent extends ApplicationEvent {
             case WITHDRAWAL -> NotificationEventType.WITHDRAWAL;
             case TRANSFER_DEBIT -> NotificationEventType.TRANSFER_SENT;
             case TRANSFER_CREDIT -> NotificationEventType.TRANSFER_RECEIVED;
+            case MONTHLY_INTEREST_ON_SAVINGS_ACCOUNT -> NotificationEventType.INTEREST_CREDITED;
         };
 
         return new NotificationEvent(

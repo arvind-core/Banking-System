@@ -1,5 +1,6 @@
-package com.BankingSystem.service.transaction.impl;
+package com.BankingSystem.service.transaction;
 
+import com.BankingSystem.BankConfig;
 import com.BankingSystem.dto.request.transaction.DepositRequest;
 import com.BankingSystem.dto.request.transaction.TransferRequest;
 import com.BankingSystem.dto.request.transaction.WithdrawalRequest;
@@ -18,11 +19,10 @@ import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.AccountRepository;
 import com.BankingSystem.repo.TransactionRepository;
 import com.BankingSystem.repo.UserRepository;
+import com.BankingSystem.service.OTPs.OtpService;
 import com.BankingSystem.service.bank.BankLedgerService;
-import com.BankingSystem.service.transaction.TransactionService;
-import com.BankingSystem.util.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +41,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final OtpService otpService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -144,6 +145,24 @@ public class TransactionServiceImpl implements TransactionService {
                     "Cannot transfer to the same account");
         }
 
+        // OTP required for transfers above threshold
+        if (request.getAmount().compareTo(
+                BigDecimal.valueOf(BankConfig.OTP_REQUIRED_ABOVE_AMOUNT)) > 0) {
+
+            if (request.getOtp() == null || request.getOtp().isBlank()) {
+                throw new InvalidOperationException(
+                        "OTP required for transfers above ₹" +
+                                BankConfig.OTP_REQUIRED_ABOVE_AMOUNT +
+                                ". Please request an OTP first.");
+            }
+
+            boolean otpValid = otpService.verifyOtp(senderAccount.getUser().getId(), "LARGE_TRANSFER", request.getOtp());
+
+            if (!otpValid) {
+                throw new InvalidOperationException("Invalid or expired OTP. Transfer rejected.");
+            }
+        }
+
         // DEADLOCK PREVENTION — always lock smaller account number first
         Account firstLock;
         Account secondLock;
@@ -224,8 +243,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BeneficiaryResponse getBeneficiaryDetails(
-            String identifier, String identifierType) {
+    public BeneficiaryResponse getBeneficiaryDetails(String identifier, String identifierType) {
 
         Account account;
 
@@ -281,10 +299,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public AccountStatementResponse getAccountStatement(
-            String accountNumber,
-            LocalDateTime fromDate,
-            LocalDateTime toDate) {
+    public AccountStatementResponse getAccountStatement(String accountNumber, LocalDateTime fromDate, LocalDateTime toDate) {
 
         Account account = accountRepository
                 .findByAccountNumber(accountNumber)

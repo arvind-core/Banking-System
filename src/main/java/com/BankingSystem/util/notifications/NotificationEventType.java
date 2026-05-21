@@ -1,4 +1,4 @@
-package com.BankingSystem.util;
+package com.BankingSystem.util.notifications;
 
 public enum NotificationEventType {
 

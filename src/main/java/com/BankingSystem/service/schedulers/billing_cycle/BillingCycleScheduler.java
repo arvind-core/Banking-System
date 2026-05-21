@@ -1,4 +1,4 @@
-package com.BankingSystem.service.scheduler;
+package com.BankingSystem.service.schedulers.billing_cycle;
 
 import com.BankingSystem.entity.card.BillingCycle;
 import com.BankingSystem.entity.card.BillingStatus;
@@ -7,8 +7,8 @@ import com.BankingSystem.entity.card.CreditCard;
 import com.BankingSystem.repo.BillingCycleRepository;
 import com.BankingSystem.repo.CreditCardRepository;
 import com.BankingSystem.service.trust.TrustScoreService;
-import com.BankingSystem.util.NotificationEvent;
-import com.BankingSystem.util.NotificationEventType;
+import com.BankingSystem.util.notifications.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -31,7 +31,7 @@ import static com.BankingSystem.BankConfig.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BillingCycleScheduler implements BillingCycleSchedulerService{
+public class BillingCycleScheduler implements BillingCycleSchedulerService {
     private final BillingCycleRepository billingCycleRepository;
     private final CreditCardRepository creditCardRepository;
     private final TrustScoreService trustScoreService;

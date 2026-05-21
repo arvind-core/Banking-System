@@ -27,10 +27,10 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
 
     List<CreditCard> findByUserIn(List<User> users);
 
-    @Query("SELECT c FROM CreditCard c WHERE c.user.id IN (SELECT a.user.id FROM Account a WHERE a.branch = :branch) AND c.status = 'PENDING_APPROVAL'")
+    @Query("SELECT c FROM CreditCard c WHERE c .user IN (SELECT a.user FROM Account a WHERE a.branch = :branch) AND c.status = 'PENDING_APPROVAL'")
     List<CreditCard> findPendingApprovalByBranch(@Param("branch") Branch branch);
 
-    @Query("SELECT COUNT(c) FROM CreditCard C WHERE c.user.id IN (SELECT a.user.id FROM Account a WHERE a.branch = :branch) AND c.status = 'ACTIVE'")
+    @Query("SELECT COUNT(c) FROM CreditCard c WHERE c.user IN (SELECT a.user FROM Account a WHERE a.branch = :branch) AND c.status = 'ACTIVE'")
     long countActiveCardsByBranch(@Param("branch") Branch branch);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -40,22 +40,3 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
     @Query("SELECT c FROM CreditCard c WHERE c.status = 'ACTIVE'")
     List<CreditCard> findAllActiveCards();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -3,7 +3,7 @@ package com.BankingSystem.notifications;
 import com.BankingSystem.BankConfig;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
-import com.BankingSystem.util.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEvent;
 import static com.BankingSystem.BankConfig.BANK_NAME;
 
 import lombok.RequiredArgsConstructor;

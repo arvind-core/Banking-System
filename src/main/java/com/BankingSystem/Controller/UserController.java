@@ -2,7 +2,9 @@ package com.BankingSystem.Controller;
 
 import com.BankingSystem.dto.request.UserRegistrationRequest;
 import com.BankingSystem.dto.response.UserResponse;
+import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.service.user.UserService;
+import com.BankingSystem.service.OTPs.OtpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final OtpService otpService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
@@ -38,5 +41,19 @@ public class UserController {
     public ResponseEntity<String> updateTelegramChatId(@PathVariable Long userId, @RequestParam String chatId) {
         userService.updateTelegramChatId(userId, chatId);
         return ResponseEntity.ok("Telegram notifications enabled.");
+    }
+
+    @PostMapping("/{userId}/otp/generate")
+    public ResponseEntity<String> generateOtp(@PathVariable Long userId, @RequestParam String operation) {
+        return ResponseEntity.ok(otpService.generatedAndSendOtp(userId, operation));
+    }
+
+    @PostMapping("/{userId}/otp/verify")
+    public ResponseEntity<Boolean> verifyOtp(@PathVariable Long userId, @RequestParam String operation, @RequestParam String otp) {
+        boolean valid = otpService.verifyOtp(userId, operation, otp);
+        if(!valid) {
+            throw new InvalidOperationException("Invalid or expired OTP.");
+        }
+        return ResponseEntity.ok(true);
     }
 }

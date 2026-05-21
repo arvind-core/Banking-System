@@ -1,7 +1,7 @@
 package com.BankingSystem.notifications;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
-import com.BankingSystem.util.NotificationEvent;
+import com.BankingSystem.util.notifications.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

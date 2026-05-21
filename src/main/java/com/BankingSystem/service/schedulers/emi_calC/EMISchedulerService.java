@@ -1,4 +1,4 @@
-package com.BankingSystem.util;
+package com.BankingSystem.service.schedulers.emi_calC;
 
 import com.BankingSystem.entity.loan.EMISchedule;
 

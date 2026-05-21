@@ -1,4 +1,4 @@
-package com.BankingSystem.service.user.impl;
+package com.BankingSystem.service.user;
 
 import com.BankingSystem.BankConfig;
 import com.BankingSystem.dto.request.UserRegistrationRequest;
@@ -11,7 +11,6 @@ import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.trust.TrustScoreService;
-import com.BankingSystem.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;

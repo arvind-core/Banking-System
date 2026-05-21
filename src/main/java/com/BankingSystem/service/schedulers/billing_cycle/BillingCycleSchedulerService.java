@@ -1,4 +1,4 @@
-package com.BankingSystem.service.scheduler;
+package com.BankingSystem.service.schedulers.billing_cycle;
 
 
 import com.BankingSystem.entity.card.BillingCycle;
