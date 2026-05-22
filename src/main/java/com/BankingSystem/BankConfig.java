@@ -133,4 +133,19 @@ public class BankConfig {
     public static final double EMI_PENALTY_PERCENTAGE = 2.0;
 
     public static final double MIN_INTEREST_CREDIT_AMOUNT = 1.0;
+
+    // Debit Card Limits
+
+    public static final int MAX_CARDS_PER_ACCOUNT = 3;
+
+    public static final double CLASSIC_DEBIT_ATM_DAILY_LIMIT = 20000.0;
+    public static final double CLASSIC_DEBIT_POS_DAILY_LIMIT = 50000.0;
+    public static final double CLASSIC_DEBIT_ONLINE_DAILY_LIMIT = 25000.0;
+
+    public static final double PLATINUM_DEBIT_ATM_DAILY_LIMIT = 50000.0;
+    public static final double PLATINUM_DEBIT_POS_DAILY_LIMIT = 200000.0;
+    public static final double PLATINUM_DEBIT_ONLINE_DAILY_LIMIT = 100000.0;
+
+    public static final int DEBIT_CARD_EXPIRY_YEARS = 5;
+    public static final int DEBIT_CARD_PIN_BCRYPT_STRENGTH = 8;
 }

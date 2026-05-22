@@ -77,6 +77,18 @@ public class OtpServiceImpl implements OtpService{
     public boolean verifyOtp(Long userId, String operation, String otp) {
 
         String otpKey = OTP_KEY_PREFIX + userId + ":" + operation;
+        String failKey = "OTP_FAIL:" + userId + ":" + operation;
+
+        // Check failed verification attempts
+        String failStr = redisTemplate.opsForValue().get(otpKey);
+        int failedAttempts = failStr != null ? Integer.parseInt(failStr) : 0;
+
+        if(failedAttempts >= BankConfig.MAX_OTP_ATTEMPTS){
+            // Invalidate OTP - too many wrong attempts
+            invalidOtp(userId, operation);
+            throw new InvalidOperationException("OTP invalidate after 3 failed attempts." +
+                    "Please request a new OTP.");
+        }
         String storeOtp = redisTemplate.opsForValue().get(otpKey);
 
         if(storeOtp == null){
@@ -85,13 +97,21 @@ public class OtpServiceImpl implements OtpService{
         }
 
         if(storeOtp.equals(otp)){
-            // Delete OTP immediately after successful verification - one - time use
+            // Delete OTP immediately after successful verification - one time use and clear fail counter
 
             invalidOtp(userId, operation);
+            redisTemplate.delete(failKey);
             log.info("OTP verified successfully for user {} operation: {}",userId, operation);
             return true;
         }
-        log.warn("OTP mismatch for user {} operation: {}", userId, operation);
+
+        // Wrong OTP - increment fail counter with same TTL as OTP
+        Long ttl = redisTemplate.getExpire(otpKey);
+        long remainingTtl = ttl != null && ttl > 0 ? ttl : BankConfig.OTP_EXPIRY_SECONDS;
+
+        redisTemplate.opsForValue().set(failKey, String.valueOf(failedAttempts + 1), Duration.ofSeconds(remainingTtl));
+        log.warn("Wrong OTP for user {} operation: {}. Failed attempts : {}", userId, operation, failedAttempts + 1);
+
         return false;
     }
 
@@ -108,20 +128,3 @@ public class OtpServiceImpl implements OtpService{
         return String.valueOf(otp);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
