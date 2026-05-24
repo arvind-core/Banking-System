@@ -7,10 +7,12 @@ import com.BankingSystem.entity.notification.NotificationPreference;
 import com.BankingSystem.entity.users.Role;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.DuplicateResourceException;
+import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.NotificationPreferenceRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.trust.TrustScoreService;
+import com.BankingSystem.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -70,8 +72,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        boolean isAdminOrManager = SecurityUtils.hasRole("ADMIN") || SecurityUtils.hasRole("BRANCH_MANAGER");
+
+        if(!isAdminOrManager && !user.getEmail().equals(currentUserEmail)) {
+            throw new InvalidOperationException("You van only view your own profile.");
+        }
 
         return mapToUserResponse(user);
     }

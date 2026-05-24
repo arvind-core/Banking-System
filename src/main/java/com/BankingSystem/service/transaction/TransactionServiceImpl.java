@@ -21,6 +21,7 @@ import com.BankingSystem.repo.TransactionRepository;
 import com.BankingSystem.repo.UserRepository;
 import com.BankingSystem.service.OTPs.OtpService;
 import com.BankingSystem.service.bank.BankLedgerService;
+import com.BankingSystem.util.SecurityUtils;
 import com.BankingSystem.util.notifications.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -269,9 +270,16 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<TransactionResponse> getTransactionHistory(String accountNumber) {
 
-        Account account = accountRepository
-                .findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountNumber));
+        Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountNumber));
+
+        // Ownership check - customers can only see their own accounts
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        boolean isManager = SecurityUtils.hasRole("MANAGER");
+
+        if(!isAdmin && !isManager && !account.getUser().getEmail().equals(currentUserEmail)) {
+            throw new InvalidOperationException("You can only view transaction for your own accounts.");
+        }
 
         return transactionRepository
                 .findByAccountOrderByCreatedAtDesc(account)
