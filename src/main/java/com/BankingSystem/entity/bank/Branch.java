@@ -1,5 +1,6 @@
 package com.BankingSystem.entity.bank;
 
+import com.BankingSystem.entity.users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,6 +40,10 @@ public class Branch {
 
     @Column(nullable = false)
     private String contactNumber;
+
+    @ManyToOne
+    @JoinColumn(name = "assigned_manager_id")
+    private User assignedManager;
 
     @Column(nullable = false)
     private boolean isActive = true;

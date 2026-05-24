@@ -9,11 +9,13 @@ import com.BankingSystem.dto.response.creditcard.CardTransactionResponse;
 import com.BankingSystem.dto.response.creditcard.CreditCardResponse;
 import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.card.*;
+import com.BankingSystem.entity.notification.InAppNotificationType;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.*;
 import com.BankingSystem.service.bank.BankLedgerService;
+import com.BankingSystem.service.inAppNotifications.NotificationPanelService;
 import com.BankingSystem.service.trust.TrustScoreService;
 import com.BankingSystem.util.notifications.NotificationEvent;
 import com.BankingSystem.util.notifications.NotificationEventType;
@@ -45,6 +47,7 @@ public class CreditCardServiceImplementation implements CreditCardService {
     private final BankLedgerService bankLedgerService;
     private final TrustScoreService trustScoreService;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPanelService notificationPanelService;
 
     @Override
     @Transactional
@@ -121,6 +124,25 @@ public class CreditCardServiceImplementation implements CreditCardService {
                 .build();
 
         CreditCard saved = creditCardRepository.save(creditCard);
+
+        if (initialStatus == CardStatus.PENDING_APPROVAL) {
+            // Find the branch manager of the customer's primary account branch
+            accountRepository.findPrimaryAccountByUserPhoneNumber(
+                            user.getPhoneNumber())
+                    .ifPresent(acc -> {
+                        if (acc.getBranch().getAssignedManager() != null) {
+                            notificationPanelService.sendToUser(
+                                    acc.getBranch().getAssignedManager().getId(),
+                                    "Credit Card Approval Required",
+                                    saved.getCardHolderName() +
+                                            " applied for a SIGNATURE credit card.",
+                                    InAppNotificationType
+                                            .CREDIT_CARD_APPLICATION_RECEIVED,
+                                    saved.getId(),
+                                    "CREDIT_CARD");
+                        }
+                    });
+        }
 
         // If auto-approved, open billing cycle and update ledger
         if (initialStatus == CardStatus.ACTIVE) {

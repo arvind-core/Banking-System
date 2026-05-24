@@ -1,8 +1,11 @@
 package com.BankingSystem.repo;
 
+import com.BankingSystem.entity.users.Role;
 import com.BankingSystem.entity.users.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,4 +23,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByPhoneNumberAndIsActiveTrue(String phoneNumber);
 
+    List<User> findAllByRole(Role role);
 }

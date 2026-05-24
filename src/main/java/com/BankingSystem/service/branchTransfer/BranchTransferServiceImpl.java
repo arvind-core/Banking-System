@@ -8,10 +8,12 @@ import com.BankingSystem.entity.bank.Branch;
 import com.BankingSystem.entity.bank.BranchTransferRequest;
 import com.BankingSystem.entity.loan.LoanAccount;
 import com.BankingSystem.entity.loan.LoanStatus;
+import com.BankingSystem.entity.notification.InAppNotificationType;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.*;
+import com.BankingSystem.service.inAppNotifications.NotificationPanelService;
 import com.BankingSystem.util.notifications.NotificationEvent;
 import com.BankingSystem.util.notifications.NotificationEventType;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class BranchTransferServiceImpl implements BranchTransferService {
     private final UserRepository userRepository;
     private final LoanAccountRepository loanAccountRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPanelService notificationPanelService;
 
 
     @Override
@@ -82,6 +85,21 @@ public class BranchTransferServiceImpl implements BranchTransferService {
                 .build();
 
         BranchTransferRequest saved = transferRepository.save(transferRequest);
+
+        // Notify current branch manager
+        if (transferRequest.getCurrentBranch().getAssignedManager() != null) {
+            notificationPanelService.sendToUser(
+                    transferRequest.getCurrentBranch()
+                            .getAssignedManager().getId(),
+                    "Branch Transfer Request",
+                    saved.getUser().getFirstName() + " " +
+                            saved.getUser().getLastName() +
+                            " requested account transfer to " +
+                            reqeustedBranch.getBranchName(),
+                    InAppNotificationType.BRANCH_TRANSFER_CURRENT_BRANCH,
+                    saved.getId(),
+                    "BRANCH_TRANSFER");
+        }
 
         // Notify User - request submitted
         Map<String, Object> data = new HashMap<>();

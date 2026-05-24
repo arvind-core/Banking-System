@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface DebitCardTransactionRepository extends JpaRepository<DebitCardTransaction, Long> {
 
-    List<DebitCardTransaction> findByDebitCardOrderByCreatedAtDesc(DebitCard debitCard);D
+    List<DebitCardTransaction> findByDebitCardOrderByCreatedAtDesc(DebitCard debitCard);
 }

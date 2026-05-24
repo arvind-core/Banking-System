@@ -10,11 +10,13 @@ import com.BankingSystem.dto.response.LoanApplicationResponse;
 import com.BankingSystem.entity.account.Account;
 import com.BankingSystem.entity.bank.Branch;
 import com.BankingSystem.entity.loan.*;
+import com.BankingSystem.entity.notification.InAppNotificationType;
 import com.BankingSystem.entity.users.User;
 import com.BankingSystem.exception.InvalidOperationException;
 import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.*;
 import com.BankingSystem.service.bank.BankLedgerService;
+import com.BankingSystem.service.inAppNotifications.NotificationPanelService;
 import com.BankingSystem.service.trust.TrustScoreService;
 import com.BankingSystem.service.schedulers.emi_calC.EMICalculator;
 import com.BankingSystem.util.notifications.NotificationEvent;
@@ -51,6 +53,7 @@ public class LoanServiceImplementation implements LoanService{
     private final EMIScheduleRepository emiScheduleRepository;
     private final BranchRepository branchRepository;
     private final BankLedgerService bankLedgerService;
+    private final NotificationPanelService notificationPanelService;
 
     @Override
     @Transactional
@@ -135,6 +138,19 @@ public class LoanServiceImplementation implements LoanService{
                 .build();
 
         LoanApplication saved = loanApplicationRepository.save(application);
+
+        // Notify branch manager in-app
+        if (application.getBranch().getAssignedManager() != null) {
+            notificationPanelService.sendToUser(application.getBranch().getAssignedManager().getId(),
+                    "New Loan Application",
+                    application.getUser().getFirstName() + " " +
+                            application.getUser().getLastName() +
+                            " applied for a " + application.getLoanType() +
+                            " loan of ₹" + application.getRequestedAmount(),
+                    InAppNotificationType.LOAN_APPLICATION_RECEIVED,
+                    saved.getId(),
+                    "LOAN_APPLICATION");
+        }
 
         // notify customer
 
