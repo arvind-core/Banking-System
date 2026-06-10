@@ -6,6 +6,7 @@ import com.BankingSystem.dto.request.transaction.TransferRequest;
 import com.BankingSystem.dto.request.transaction.WithdrawalRequest;
 import com.BankingSystem.dto.response.AccountResponse;
 import com.BankingSystem.dto.response.AccountStatementResponse;
+import com.BankingSystem.dto.response.PagedResponse;
 import com.BankingSystem.dto.response.transaction.BeneficiaryResponse;
 import com.BankingSystem.dto.response.transaction.TransactionResponse;
 import com.BankingSystem.entity.account.Account;
@@ -25,6 +26,10 @@ import com.BankingSystem.util.SecurityUtils;
 import com.BankingSystem.util.notifications.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -384,6 +389,50 @@ public class TransactionServiceImpl implements TransactionService {
                 .ownerFirstName(saved.getUser().getFirstName())
                 .ownerLastName(saved.getUser().getLastName())
                 .createdAt(saved.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public PagedResponse<TransactionResponse> getTransactionHistoryPaged(String accountNumber, int page, int size) {
+
+        Account account = accountRepository.findByAccountNumberAndIsActiveTrue(accountNumber).orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountNumber));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Transaction> transactionPage = transactionRepository.findByAccountOrderByCreatedAtDesc(account, pageable);
+
+        return PagedResponse.<TransactionResponse>builder()
+                .content(transactionPage.getContent().stream()
+                        .map(this::mapToTransactionResponse)
+                        .collect(Collectors.toList()))
+                .pageNumber(transactionPage.getNumber())
+                .pageSize(transactionPage.getSize())
+                .totalElements(transactionPage.getTotalElements())
+                .totalPages(transactionPage.getTotalPages())
+                .isLastPage(transactionPage.isLast())
+                .isFirstPage(transactionPage.isFirst())
+                .build();
+    }
+
+    @Override
+    public PagedResponse<TransactionResponse> getAccountStatementPaged(String accountNumber, LocalDateTime fromDate, LocalDateTime toDate, int page, int size) {
+
+        Account account = accountRepository.findByAccountNumberAndIsActiveTrue(accountNumber).orElseThrow(() -> new ResourceNotFoundException("Account not found: " + accountNumber));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Transaction> transactionPage = transactionRepository.findByAccountAndCreatedAtBetweenOrderByCreatedAtDesc(account, fromDate, toDate, pageable);
+
+        return PagedResponse.<TransactionResponse>builder()
+                .content(transactionPage.getContent().stream()
+                        .map(this::mapToTransactionResponse)
+                        .collect(Collectors.toList()))
+                .pageNumber(transactionPage.getNumber())
+                .pageSize(transactionPage.getSize())
+                .totalElements(transactionPage.getTotalElements())
+                .totalPages(transactionPage.getTotalPages())
+                .isLastPage(transactionPage.isLast())
+                .isFirstPage(transactionPage.isFirst())
                 .build();
     }
 }

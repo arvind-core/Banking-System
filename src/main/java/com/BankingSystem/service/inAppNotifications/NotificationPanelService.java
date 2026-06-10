@@ -1,5 +1,6 @@
 package com.BankingSystem.service.inAppNotifications;
 
+import com.BankingSystem.dto.response.PagedResponse;
 import com.BankingSystem.dto.response.inAppNotifications.InAppNotificationResponse;
 import com.BankingSystem.entity.notification.InAppNotificationType;
 
@@ -18,4 +19,6 @@ public interface NotificationPanelService {
     InAppNotificationResponse markAsRead(Long notificationId);
 
     void markALlAsRead(Long userId);
+
+    PagedResponse<InAppNotificationResponse> getNotificationsPaged(Long userId, int page, int size);
 }

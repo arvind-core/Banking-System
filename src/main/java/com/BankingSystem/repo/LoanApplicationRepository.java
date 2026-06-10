@@ -4,6 +4,8 @@ import com.BankingSystem.entity.loan.LoanApplication;
 import com.BankingSystem.entity.loan.LoanStatus;
 import com.BankingSystem.entity.loan.LoanType;
 import com.BankingSystem.entity.users.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -22,4 +24,7 @@ public interface LoanApplicationRepository
     List<LoanApplication> findByUserAndLoanType(User user, LoanType loanType);
 
     long countByUserAndStatusIn(User user, List<LoanStatus> statuses);
+
+    Page<LoanApplication> findByUser(User user, Pageable pageable);
+
 }

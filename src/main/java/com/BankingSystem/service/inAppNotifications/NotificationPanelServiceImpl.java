@@ -1,5 +1,6 @@
 package com.BankingSystem.service.inAppNotifications;
 
+import com.BankingSystem.dto.response.PagedResponse;
 import com.BankingSystem.dto.response.inAppNotifications.InAppNotificationResponse;
 import com.BankingSystem.entity.notification.InAppNotification;
 import com.BankingSystem.entity.notification.InAppNotificationType;
@@ -8,6 +9,10 @@ import com.BankingSystem.exception.ResourceNotFoundException;
 import com.BankingSystem.repo.InAppNotificationRepository;
 import com.BankingSystem.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,6 +105,28 @@ public class NotificationPanelServiceImpl implements NotificationPanelService{
                 .referenceType(n.getReferenceType())
                 .isRead(n.isRead())
                 .createdAt(n.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public PagedResponse<InAppNotificationResponse> getNotificationsPaged(Long userId, int page, int size) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<InAppNotification> notifPage = notificationRepository.findByRecipientOrderByCreatedAtDesc(user, pageable);
+
+        return PagedResponse.<InAppNotificationResponse>builder()
+                .content(notifPage.getContent().stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList()))
+                .pageNumber(notifPage.getNumber())
+                .pageSize(notifPage.getSize())
+                .totalElements(notifPage.getTotalElements())
+                .totalPages(notifPage.getTotalPages())
+                .isLastPage(notifPage.isLast())
+                .isFirstPage(notifPage.isFirst())
                 .build();
     }
 }

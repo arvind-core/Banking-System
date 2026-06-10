@@ -5,6 +5,7 @@ import com.BankingSystem.dto.request.transaction.TransferRequest;
 import com.BankingSystem.dto.request.transaction.WithdrawalRequest;
 import com.BankingSystem.dto.response.AccountResponse;
 import com.BankingSystem.dto.response.AccountStatementResponse;
+import com.BankingSystem.dto.response.PagedResponse;
 import com.BankingSystem.dto.response.transaction.BeneficiaryResponse;
 import com.BankingSystem.dto.response.transaction.TransactionResponse;
 
@@ -26,4 +27,8 @@ public interface TransactionService {
     AccountStatementResponse getAccountStatement(String accountNumber, LocalDateTime fromDate, LocalDateTime toDate);
 
     AccountResponse updatePrimaryAccount(Long userId, String accountNumber);
+
+    PagedResponse<TransactionResponse> getTransactionHistoryPaged(String accountNumber, int page, int size);
+
+    PagedResponse<TransactionResponse> getAccountStatementPaged(String accountNumber, LocalDateTime fromDate, LocalDateTime toDate, int page, int size);
 }

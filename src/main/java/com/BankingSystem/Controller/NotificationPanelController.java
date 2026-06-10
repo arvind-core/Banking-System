@@ -1,5 +1,6 @@
 package com.BankingSystem.Controller;
 
+import com.BankingSystem.dto.response.PagedResponse;
 import com.BankingSystem.dto.response.inAppNotifications.InAppNotificationResponse;
 import com.BankingSystem.service.inAppNotifications.NotificationPanelService;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +48,14 @@ public class NotificationPanelController {
             @PathVariable Long userId) {
         notificationPanelService.markALlAsRead(userId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/user/{userId}/paged")
+    public ResponseEntity<PagedResponse<InAppNotificationResponse>> getNotificationsPaged(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size) {
+        return ResponseEntity.ok(
+                notificationPanelService.getNotificationsPaged(userId, page, size));
     }
 }

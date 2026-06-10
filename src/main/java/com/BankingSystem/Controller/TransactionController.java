@@ -5,6 +5,7 @@ import com.BankingSystem.dto.request.transaction.TransferRequest;
 import com.BankingSystem.dto.request.transaction.WithdrawalRequest;
 import com.BankingSystem.dto.response.AccountResponse;
 import com.BankingSystem.dto.response.AccountStatementResponse;
+import com.BankingSystem.dto.response.PagedResponse;
 import com.BankingSystem.dto.response.transaction.BeneficiaryResponse;
 import com.BankingSystem.dto.response.transaction.TransactionResponse;
 import com.BankingSystem.service.transaction.TransactionService;
@@ -76,5 +77,26 @@ public class TransactionController {
         AccountResponse response = transactionService
                 .updatePrimaryAccount(userId, accountNumber);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history/{accountNumber}/paged")
+    public ResponseEntity<PagedResponse<TransactionResponse>> getTransactionHistoryPaged(
+            @PathVariable String accountNumber,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(transactionService
+                .getTransactionHistoryPaged(accountNumber, page, size));
+    }
+
+    @GetMapping("/statement/{accountNumber}/paged")
+    public ResponseEntity<PagedResponse<TransactionResponse>> getStatementPaged(
+            @PathVariable String accountNumber,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime toDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(transactionService.getAccountStatementPaged(accountNumber, fromDate, toDate, page, size));
     }
 }

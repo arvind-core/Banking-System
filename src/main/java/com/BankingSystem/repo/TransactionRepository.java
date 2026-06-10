@@ -1,6 +1,9 @@
 package com.BankingSystem.repo;
 
 import java.math.BigDecimal;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.BankingSystem.entity.account.Account;
@@ -19,16 +22,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     List<Transaction> findByAccountOrderByCreatedAtDesc(Account account);
 
-    List<Transaction> findByAccountAndTransactionTypeOrderByCreatedAtDesc(
-            Account account,
-            TransactionType transactionType
-    );
+    List<Transaction> findByAccountAndTransactionTypeOrderByCreatedAtDesc(Account account, TransactionType transactionType);
 
-    List<Transaction> findByAccountAndCreatedAtBetweenOrderByCreatedAtDesc(
-            Account account,
-            LocalDateTime startDate,
-            LocalDateTime endDate
-    );
+    List<Transaction> findByAccountAndCreatedAtBetweenOrderByCreatedAtDesc(Account account, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
             "WHERE t.account = :account " +
@@ -40,4 +36,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("type") TransactionType type,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+    Page<Transaction> findByAccountOrderByCreatedAtDesc(Account account, Pageable pageable);
+
+    Page<Transaction> findByAccountAndCreatedAtBetweenOrderByCreatedAtDesc(Account account, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 }
