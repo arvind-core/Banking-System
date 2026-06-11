@@ -70,15 +70,12 @@ public class ApplicationConfig {
                                 "/api/cards/unblock/**",
                                 "/api/branch-transfers/current-branch-review",
                                 "/api/branch-transfers/new-branch-review",
-                                "/api/branch-transfers/pending/**"
-                        )
+                                "/api/branch-transfers/pending/**")
                         .hasAnyRole("MANAGER", "ADMIN")
                         // Everything else needs authentication
                         .anyRequest()
-                        .authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
